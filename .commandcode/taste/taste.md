@@ -68,3 +68,4 @@ See [infrastructure/taste.md](infrastructure/taste.md)
 
 # workflow
 - When applying universal standards to a project, write filtered (project-relevant only) standards to agents.md in the project root. Confidence: 0.70
+- After completing multi-scope worktree dispatches, proceed directly to merge and push instead of presenting a summary and waiting for confirmation. Confidence: 0.65
