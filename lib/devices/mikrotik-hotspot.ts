@@ -6,8 +6,8 @@ export class MikrotikHotspot implements DeviceHandler {
     return {
       title: "MikroTik Hotspot",
       description: "Manage hotspot users and profiles on MikroTik RouterOS",
-      author: "PHPNuxBill",
-      url: "https://mikrotik.com",
+      author: "PHPNuxBill (original PHP code)",
+      url: "https://github.com/hotspotbilling/phpnuxbill",
     };
   }
 
