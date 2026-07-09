@@ -5,7 +5,74 @@
 Two separate authentication domains:
 
 | Layer           | Mechanism                                                           | Responsibility                                                |
-| --------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| ---
+
+## 14. Implementation Status (2026-07-09)
+
+All phases implemented and merged to `master`.
+
+### Completed
+
+| Phase          | Status | Key Deliverables                                                                                                          |
+| -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Foundation     | ✅     | Drizzle schema (8 tables, 5 enums, full relations), `lib/db.ts`, `lib/crypto.ts`, `lib/tls-fingerprint.ts`, `lib/cn.ts`   |
+| Auth & UI      | ✅     | BetterAuth (email/password), login page, daisyUI dark theme, dashboard layout with sidebar, design tokens                 |
+| Router Layer   | ✅     | `lib/mikrotik-client.ts` (connection manager + pool), `lib/devices/` (DeviceHandler interface, MikrotikHotspot, resolver) |
+| API Routes     | ✅     | Router CRUD + test, Plan CRUD, Customer CRUD + online/disconnect/recharge — all JSend format, Zod validated, auth-guarded |
+| Billing Basics | ✅     | Voucher table defined, transaction table defined, recharge endpoint                                                       |
+
+### Key Files
+
+```
+app/                               # Next.js App Router
+├── (auth)/login/page.tsx          # BetterAuth sign-in form
+├── (dashboard)/layout.tsx         # Sidebar + auth guard
+├── (dashboard)/page.tsx           # Dashboard home
+├── api/
+│   ├── auth/[...all]/route.ts     # BetterAuth handler
+│   ├── routers/*                  # Router CRUD + test
+│   ├── plans/*                    # Plan CRUD
+│   └── customers/*                # Customer CRUD + online/disconnect/recharge
+├── globals.css                    # Tailwind 4 + daisyUI dark theme + design tokens
+└── layout.tsx                     # Root layout + SessionProvider
+
+lib/
+├── auth.ts                        # BetterAuth server config
+├── auth-client.ts                 # BetterAuth React client
+├── crypto.ts                      # AES-256-GCM encrypt/decrypt (lazy key loading)
+├── tls-fingerprint.ts             # TOFU certificate fingerprinting
+├── mikrotik-client.ts             # RouterOS API connection manager + pool
+├── db.ts                          # Drizzle client singleton
+├── cn.ts                          # clsx + tailwind-merge
+└── devices/
+    ├── types.ts                   # DeviceHandler interface
+    ├── resolver.ts                # Device type → handler mapping
+    └── mikrotik-hotspot.ts        # Hotspot device handler
+
+db/schema/
+├── enums.ts                       # PostgreSQL enums
+├── tables.ts                      # All tables (BetterAuth + business)
+├── relations.ts                   # Drizzle relations
+└── index.ts                       # Re-exports
+
+docs/
+└── auth-implementation.md         # This document
+```
+
+### Deviations from Original Plan
+
+- **`lib/crypto.ts`**: Key loading is lazy (`getKey()`) instead of top-level — avoids build-time crash when `ROUTER_ENCRYPTION_KEY` is not set.
+- **`db/schema/tables.ts`**: BetterAuth's `user` (singular) table coexists with business `routers`, `plans`, `customers`, etc. in a single schema file.
+- **daisyUI**: Uses `@plugin "daisyui"` (Tailwind 4 syntax) instead of `@import`.
+
+### Remaining (Phase 6 — Hardening)
+
+- [ ] Connection pooling with auto-reconnect
+- [ ] Cron job for router health checks
+- [ ] Let's Encrypt automation endpoint
+- [ ] Audit logging for all MikroTik operations
+- [ ] PPPoE device handler
+- [ ] Payment gateway integration------------ | ------------------------------------------------------------------- | ------------------------------------------------------------- |
 | **App Auth**    | BetterAuth (email/password, session cookie)                         | Dashboard users — who can log in, roles, sessions             |
 | **Router Auth** | AES-256-GCM encrypted in DB, decrypted server-side at API call time | MikroTik RouterOS credentials — never exposed to the frontend |
 
