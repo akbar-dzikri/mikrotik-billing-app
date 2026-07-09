@@ -1,36 +1,167 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MikroTik Billing App
+
+A self-hosted billing and hotspot management dashboard for MikroTik routers. Built with Next.js 16, PostgreSQL, Tailwind CSS, and daisyUI.
+
+## Architecture
+
+| Layer           | Mechanism                                                    |
+| --------------- | ------------------------------------------------------------ |
+| **App Auth**    | BetterAuth (email/password, session cookie)                  |
+| **Router Auth** | AES-256-GCM encrypted in DB, decrypted server-side at runtime |
+
+Router credentials never touch the browser — all MikroTik API calls happen server-side.
+
+## Tech Stack
+
+| Layer             | Choice                                   |
+| ----------------- | ---------------------------------------- |
+| Framework         | Next.js 16+ (App Router)                 |
+| Language          | TypeScript                               |
+| Database          | PostgreSQL                               |
+| ORM               | Drizzle ORM                              |
+| App Auth          | BetterAuth (email/password)              |
+| Router API Client | `node-routeros` (RouterOS API protocol)  |
+| Encryption        | Node.js `crypto` — AES-256-GCM           |
+| TLS Strategy      | Trust-on-first-use (TOFU)                |
+| UI                | Tailwind CSS 4 + daisyUI 5 (dark theme)  |
+| Validation        | Zod                                      |
+| Package Manager   | pnpm                                     |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL
+- pnpm
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone git@github.com:akbar-dzikri/mikrotik-billing-app.git
+cd mikrotik-billing-app
+
+# Install dependencies
+pnpm install
+
+# Copy environment template and fill in values
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+# Database
+DATABASE_URL="postgresql://user:pass@localhost:5432/billing"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# BetterAuth
+BETTER_AUTH_SECRET=""               # openssl rand -base64 32
+BETTER_AUTH_URL="http://localhost:3000"
 
-## Learn More
+# Router credential encryption (AES-256)
+ROUTER_ENCRYPTION_KEY=""            # node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Database Migrations
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Generate migrations from schema
+pnpm drizzle-kit generate
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Apply migrations
+pnpm drizzle-kit migrate
+```
 
-## Deploy on Vercel
+### Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000). The first request redirects to `/login`.
+
+## Project Structure
+
+```
+app/
+├── (auth)/login/                   # BetterAuth sign-in page
+├── (dashboard)/                    # Authenticated dashboard shell
+│   ├── layout.tsx                  # Sidebar + auth guard
+│   └── page.tsx                    # Dashboard home
+├── api/
+│   ├── auth/[...all]/              # BetterAuth API handler
+│   ├── routers/                    # Router CRUD + connection test
+│   ├── plans/                      # Plan CRUD
+│   └── customers/                  # Customer CRUD + online/disconnect/recharge
+├── globals.css                     # Tailwind + daisyUI dark theme
+└── layout.tsx                      # Root layout
+
+lib/
+├── auth.ts                         # BetterAuth server config
+├── auth-client.ts                  # BetterAuth React client
+├── crypto.ts                       # AES-256-GCM encrypt/decrypt
+├── tls-fingerprint.ts              # TOFU certificate fingerprinting
+├── mikrotik-client.ts              # RouterOS API connection manager + pool
+├── db.ts                           # Drizzle client singleton
+├── cn.ts                           # clsx + tailwind-merge utility
+└── devices/
+    ├── types.ts                    # DeviceHandler interface
+    ├── resolver.ts                 # Device type → handler mapping
+    └── mikrotik-hotspot.ts         # Hotspot device handler
+
+db/schema/
+├── enums.ts                        # PostgreSQL enums
+├── tables.ts                       # 11 tables (auth + business)
+├── relations.ts                    # Drizzle relations
+└── index.ts                        # Re-exports
+```
+
+## API Endpoints
+
+All endpoints use [JSend](https://github.com/omniti-labs/jsend) response format and require BetterAuth session authentication.
+
+### Routers
+
+| Method   | Path                         | Description                                |
+| -------- | ---------------------------- | ------------------------------------------ |
+| `GET`    | `/api/routers`               | List all routers                           |
+| `POST`   | `/api/routers`               | Add router (encrypts password, captures fingerprint) |
+| `GET`    | `/api/routers/[id]`          | Get single router                          |
+| `PUT`    | `/api/routers/[id]`          | Update router                              |
+| `DELETE` | `/api/routers/[id]`          | Delete router                              |
+| `POST`   | `/api/routers/[id]/test`     | Test router connection                     |
+
+### Plans
+
+| Method   | Path               | Description                          |
+| -------- | ------------------ | ------------------------------------ |
+| `GET`    | `/api/plans`       | List plans (with router name)        |
+| `POST`   | `/api/plans`       | Create plan (syncs to router profile) |
+| `GET`    | `/api/plans/[id]`  | Get single plan                      |
+| `PUT`    | `/api/plans/[id]`  | Update plan (syncs to router)        |
+| `DELETE` | `/api/plans/[id]`  | Delete plan (removes router profile) |
+
+### Customers
+
+| Method   | Path                              | Description                           |
+| -------- | --------------------------------- | ------------------------------------- |
+| `GET`    | `/api/customers`                  | List customers                        |
+| `POST`   | `/api/customers`                  | Create customer (syncs to router)     |
+| `GET`    | `/api/customers/[id]`             | Get single customer                   |
+| `DELETE` | `/api/customers/[id]`             | Remove customer (removes from router) |
+| `GET`    | `/api/customers/[id]/online`      | Check online status                   |
+| `POST`   | `/api/customers/[id]/disconnect`  | Force disconnect from router          |
+| `POST`   | `/api/customers/recharge`         | Recharge with new plan                |
+
+## Design Decisions
+
+- **RouterOS API over REST** — TLS on port 8729 works out of the box with auto-generated certs.
+- **AES-256-GCM** — Authenticated encryption; detects tampering.
+- **Trust-on-first-use** — Zero manual certificate management. MITM protection without CA involvement.
+- **Server-side only** — Router credentials never touch the browser.
+- **Drizzle over Prisma** — Lightweight, SQL-like API, no code generation.
+- **daisyUI over shadcn/ui** — Class-based components, dark theme by default, faster iteration.
+
+## Documentation
+
+Full implementation plan: [docs/auth-implementation.md](docs/auth-implementation.md)
