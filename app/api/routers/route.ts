@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import tls from "tls";
-import { auth } from "@/lib/auth";
+import { getSession, routerOwnerFilter } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { routers } from "@/db/schema/tables";
 import { encryptPassword } from "@/lib/crypto";
@@ -40,17 +40,14 @@ const safeColumns = {
 // ── GET /api/routers — list all routers ───────────────────────────
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
+
+    const ownerFilter = routerOwnerFilter(session);
 
     const allRouters = await db
       .select(safeColumns)
       .from(routers)
+      .where(ownerFilter ?? undefined)
       .orderBy(routers.createdAt);
 
     return NextResponse.json({ status: "success", data: allRouters });
@@ -67,13 +64,7 @@ export async function GET(request: NextRequest) {
 // ── POST /api/routers — add a new router ──────────────────────────
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const body = await request.json();
     const parsed = createRouterSchema.safeParse(body);
@@ -117,7 +108,8 @@ export async function POST(request: NextRequest) {
       const client = await getRouterClient(temporaryRecord);
 
       // Extract TLS fingerprint from the connected socket
-      const socket: tls.TLSSocket = (client as any).connector?.socket;
+      const connector = (client as unknown as { connector?: { socket?: tls.TLSSocket } }).connector;
+      const socket = connector?.socket;
       if (socket) {
         try {
           tlsFingerprint = getCertFingerprint(socket);
@@ -135,6 +127,7 @@ export async function POST(request: NextRequest) {
 
     await db.insert(routers).values({
       id: routerId,
+      userId: session.user.id,
       name,
       host,
       apiPort,
@@ -148,6 +141,8 @@ export async function POST(request: NextRequest) {
       lastSeen: tlsFingerprint ? now : null,
       description: description ?? null,
       enabled: true,
+      createdBy: session.user.id,
+      updatedBy: session.user.id,
       createdAt: now,
       updatedAt: now,
     });

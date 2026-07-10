@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { and, eq, inArray } from "drizzle-orm";
+import { getSession, routerOwnerFilter } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { customers, plans, routers } from "@/db/schema/tables";
 import { getDeviceHandler } from "@/lib/devices/resolver";
@@ -11,15 +11,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
+    const ownerFilter = routerOwnerFilter(session);
 
     const [customer] = await db
       .select({
@@ -43,7 +38,11 @@ export async function GET(
       .from(customers)
       .leftJoin(routers, eq(customers.routerId, routers.id))
       .leftJoin(plans, eq(customers.planId, plans.id))
-      .where(eq(customers.id, id))
+      .where(
+        ownerFilter
+          ? and(eq(customers.id, id), ownerFilter)
+          : eq(customers.id, id),
+      )
       .limit(1);
 
     if (!customer) {
@@ -70,15 +69,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
+    const ownerFilter = routerOwnerFilter(session);
 
     // Fetch customer with plan before deleting
     const [customer] = await db
@@ -94,6 +88,20 @@ export async function DELETE(
       );
     }
 
+    if (ownerFilter) {
+      const [owned] = await db
+        .select({ id: routers.id })
+        .from(routers)
+        .where(and(eq(routers.id, customer.routerId), ownerFilter))
+        .limit(1);
+      if (!owned) {
+        return NextResponse.json(
+          { status: "error", message: "Customer not found" },
+          { status: 404 },
+        );
+      }
+    }
+
     // Fetch associated plan for device handler
     const [plan] = await db
       .select()
@@ -107,11 +115,27 @@ export async function DELETE(
         const handler = getDeviceHandler(plan.type);
         await handler.removeCustomer(customer, plan);
       }
-    } catch (handlerError) {
+    } catch {
       // Proceed with deletion even if router sync fails
     }
 
-    await db.delete(customers).where(eq(customers.id, id));
+    // Delete with ownership check via subquery (Drizzle doesn't support joins in DELETE)
+    if (ownerFilter) {
+      const ownedRouterSubquery = db
+        .select({ routerId: routers.id })
+        .from(routers)
+        .where(ownerFilter);
+      await db
+        .delete(customers)
+        .where(
+          and(
+            eq(customers.id, id),
+            inArray(customers.routerId, ownedRouterSubquery),
+          ),
+        );
+    } else {
+      await db.delete(customers).where(eq(customers.id, id));
+    }
 
     return NextResponse.json({ status: "success", data: null });
   } catch (error: unknown) {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { and, eq } from "drizzle-orm";
+import { getSession, routerOwnerFilter } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { customers, plans, routers } from "@/db/schema/tables";
 import { getDeviceHandler } from "@/lib/devices/resolver";
@@ -25,15 +25,11 @@ const createCustomerSchema = z.object({
 // ── GET /api/customers — list customers ───────────────────────────
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
-    const allCustomers = await db
+    const ownerFilter = routerOwnerFilter(session);
+
+    const baseQuery = db
       .select({
         id: customers.id,
         username: customers.username,
@@ -54,8 +50,13 @@ export async function GET(request: NextRequest) {
       })
       .from(customers)
       .leftJoin(routers, eq(customers.routerId, routers.id))
-      .leftJoin(plans, eq(customers.planId, plans.id))
-      .orderBy(customers.createdAt);
+      .leftJoin(plans, eq(customers.planId, plans.id));
+
+    const filteredQuery = ownerFilter
+      ? baseQuery.where(ownerFilter)
+      : baseQuery;
+
+    const allCustomers = await filteredQuery.orderBy(customers.createdAt);
 
     return NextResponse.json({ status: "success", data: allCustomers });
   } catch (error: unknown) {
@@ -71,13 +72,7 @@ export async function GET(request: NextRequest) {
 // ── POST /api/customers — create customer ─────────────────────────
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const body = await request.json();
     const parsed = createCustomerSchema.safeParse(body);
@@ -110,6 +105,23 @@ export async function POST(request: NextRequest) {
     const customerId = randomUUID();
     const now = new Date();
 
+    // Verify router ownership
+    const ownerFilter = routerOwnerFilter(session);
+    if (ownerFilter) {
+      const [router] = await db
+        .select({ id: routers.id })
+        .from(routers)
+        .where(and(eq(routers.id, routerId), ownerFilter))
+        .limit(1);
+
+      if (!router) {
+        return NextResponse.json(
+          { status: "error", message: "Router not found" },
+          { status: 404 },
+        );
+      }
+    }
+
     // Fetch the plan for device handler
     const [plan] = await db
       .select()
@@ -137,6 +149,8 @@ export async function POST(request: NextRequest) {
       macAddress: macAddress ?? null,
       ipAddress: ipAddress ?? null,
       expiredAt: expiredAt ? new Date(expiredAt) : null,
+      createdBy: session.user.id,
+      updatedBy: session.user.id,
       createdAt: now,
       updatedAt: now,
     };

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { getSession, routerOwnerWhere } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { routers } from "@/db/schema/tables";
 import { getRouterClient } from "@/lib/mikrotik-client";
@@ -11,13 +11,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
 
@@ -25,7 +19,7 @@ export async function POST(
     const [router] = await db
       .select()
       .from(routers)
-      .where(eq(routers.id, id))
+      .where(routerOwnerWhere(session, eq(routers.id, id)))
       .limit(1);
 
     if (!router) {
@@ -64,7 +58,7 @@ export async function POST(
           lastSeen: new Date(),
           updatedAt: new Date(),
         })
-        .where(eq(routers.id, id));
+        .where(routerOwnerWhere(session, eq(routers.id, id)));
 
       return NextResponse.json({
         status: "success",
@@ -80,7 +74,7 @@ export async function POST(
           status: "offline",
           updatedAt: new Date(),
         })
-        .where(eq(routers.id, id));
+        .where(routerOwnerWhere(session, eq(routers.id, id)));
 
       return NextResponse.json(
         {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { eq, sql } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { and, eq } from "drizzle-orm";
+import { getSession, routerOwnerFilter } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { plans, routers } from "@/db/schema/tables";
 import { getDeviceHandler } from "@/lib/devices/resolver";
@@ -27,15 +27,9 @@ const createPlanSchema = z.object({
 // ── GET /api/plans — list all plans ───────────────────────────────
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
-    const allPlans = await db
+    const query = db
       .select({
         id: plans.id,
         name: plans.name,
@@ -56,8 +50,14 @@ export async function GET(request: NextRequest) {
         updatedAt: plans.updatedAt,
       })
       .from(plans)
-      .leftJoin(routers, eq(plans.routerId, routers.id))
-      .orderBy(plans.createdAt);
+      .leftJoin(routers, eq(plans.routerId, routers.id));
+
+    const ownerFilter = routerOwnerFilter(session);
+    if (ownerFilter) {
+      query.where(ownerFilter);
+    }
+
+    const allPlans = await query.orderBy(plans.createdAt);
 
     return NextResponse.json({ status: "success", data: allPlans });
   } catch (error: unknown) {
@@ -73,13 +73,7 @@ export async function GET(request: NextRequest) {
 // ── POST /api/plans — create plan ─────────────────────────────────
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const body = await request.json();
     const parsed = createPlanSchema.safeParse(body);
@@ -111,6 +105,22 @@ export async function POST(request: NextRequest) {
       poolId,
     } = parsed.data;
 
+    // Router ownership verification
+    const ownerFilter = routerOwnerFilter(session);
+    if (ownerFilter) {
+      const [router] = await db
+        .select({ id: routers.id })
+        .from(routers)
+        .where(and(eq(routers.id, routerId), ownerFilter))
+        .limit(1);
+      if (!router) {
+        return NextResponse.json(
+          { status: "error", message: "Router not found" },
+          { status: 404 },
+        );
+      }
+    }
+
     const planId = randomUUID();
     const now = new Date();
 
@@ -130,6 +140,8 @@ export async function POST(request: NextRequest) {
       price: String(price),
       enabled,
       poolId: poolId ?? null,
+      createdBy: session.user.id,
+      updatedBy: session.user.id,
       createdAt: now,
       updatedAt: now,
     });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { getSession, routerOwnerWhere } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { routers } from "@/db/schema/tables";
 import { encryptPassword } from "@/lib/crypto";
@@ -39,20 +39,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
 
     const [router] = await db
       .select(safeColumns)
       .from(routers)
-      .where(eq(routers.id, id))
+      .where(routerOwnerWhere(session, eq(routers.id, id)))
       .limit(1);
 
     if (!router) {
@@ -79,13 +73,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
 
@@ -93,7 +81,7 @@ export async function PUT(
     const [existing] = await db
       .select()
       .from(routers)
-      .where(eq(routers.id, id))
+      .where(routerOwnerWhere(session, eq(routers.id, id)))
       .limit(1);
 
     if (!existing) {
@@ -136,13 +124,13 @@ export async function PUT(
     await db
       .update(routers)
       .set(updateData)
-      .where(eq(routers.id, id));
+      .where(routerOwnerWhere(session, eq(routers.id, id)));
 
     // Return safe version
     const [updated] = await db
       .select(safeColumns)
       .from(routers)
-      .where(eq(routers.id, id))
+      .where(routerOwnerWhere(session, eq(routers.id, id)))
       .limit(1);
 
     return NextResponse.json({ status: "success", data: updated });
@@ -162,20 +150,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
 
     const [existing] = await db
       .select({ id: routers.id })
       .from(routers)
-      .where(eq(routers.id, id))
+      .where(routerOwnerWhere(session, eq(routers.id, id)))
       .limit(1);
 
     if (!existing) {
@@ -185,7 +167,7 @@ export async function DELETE(
       );
     }
 
-    await db.delete(routers).where(eq(routers.id, id));
+    await db.delete(routers).where(routerOwnerWhere(session, eq(routers.id, id)));
 
     return NextResponse.json({ status: "success", data: null });
   } catch (error: unknown) {

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { and, eq, inArray } from "drizzle-orm";
+import { getSession, routerOwnerFilter } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
-import { customers, plans, userRecharges } from "@/db/schema/tables";
+import { customers, plans, routers, userRecharges } from "@/db/schema/tables";
 import { getDeviceHandler } from "@/lib/devices/resolver";
 
 // ── Zod schemas ───────────────────────────────────────────────────
@@ -16,13 +16,7 @@ const rechargeSchema = z.object({
 // ── POST /api/customers/recharge — recharge customer ──────────────
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const body = await request.json();
     const parsed = rechargeSchema.safeParse(body);
@@ -52,6 +46,21 @@ export async function POST(request: NextRequest) {
         { status: "error", message: "Customer not found" },
         { status: 404 },
       );
+    }
+
+    const ownerFilter = routerOwnerFilter(session);
+    if (ownerFilter) {
+      const [owned] = await db
+        .select({ id: routers.id })
+        .from(routers)
+        .where(and(eq(routers.id, customer.routerId), ownerFilter))
+        .limit(1);
+      if (!owned) {
+        return NextResponse.json(
+          { status: "error", message: "Customer not found" },
+          { status: 404 },
+        );
+      }
     }
 
     // Fetch the new plan
@@ -93,19 +102,42 @@ export async function POST(request: NextRequest) {
       routerId: customer.routerId,
       startedAt: now,
       expiredAt: newExpiredAt,
+      createdBy: session.user.id,
+      updatedBy: session.user.id,
       createdAt: now,
     });
 
-    // Update customer's plan, status, and expiry
-    await db
-      .update(customers)
-      .set({
-        planId,
-        status: "active",
-        expiredAt: newExpiredAt,
-        updatedAt: now,
-      })
-      .where(eq(customers.id, customerId));
+    // Update customer's plan, status, and expiry (with ownership check)
+    if (ownerFilter) {
+      const ownedRouterSubquery = db
+        .select({ routerId: routers.id })
+        .from(routers)
+        .where(ownerFilter);
+      await db
+        .update(customers)
+        .set({
+          planId,
+          status: "active",
+          expiredAt: newExpiredAt,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(customers.id, customerId),
+            inArray(customers.routerId, ownedRouterSubquery),
+          ),
+        );
+    } else {
+      await db
+        .update(customers)
+        .set({
+          planId,
+          status: "active",
+          expiredAt: newExpiredAt,
+          updatedAt: now,
+        })
+        .where(eq(customers.id, customerId));
+    }
 
     // Sync to router via device handler
     const updatedCustomer = {

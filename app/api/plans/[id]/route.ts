@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { and, eq, inArray } from "drizzle-orm";
+import { getSession, routerOwnerFilter } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { plans, routers } from "@/db/schema/tables";
 import { getDeviceHandler } from "@/lib/devices/resolver";
@@ -29,15 +29,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
+    const ownerFilter = routerOwnerFilter(session);
 
     const [plan] = await db
       .select({
@@ -61,7 +56,7 @@ export async function GET(
       })
       .from(plans)
       .leftJoin(routers, eq(plans.routerId, routers.id))
-      .where(eq(plans.id, id))
+      .where(ownerFilter ? and(eq(plans.id, id), ownerFilter) : eq(plans.id, id))
       .limit(1);
 
     if (!plan) {
@@ -88,15 +83,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
+    const ownerFilter = routerOwnerFilter(session);
 
     // Fetch existing plan
     const [existing] = await db
@@ -110,6 +100,20 @@ export async function PUT(
         { status: "error", message: "Plan not found" },
         { status: 404 },
       );
+    }
+
+    if (ownerFilter) {
+      const [owned] = await db
+        .select({ id: routers.id })
+        .from(routers)
+        .where(and(eq(routers.id, existing.routerId), ownerFilter))
+        .limit(1);
+      if (!owned) {
+        return NextResponse.json(
+          { status: "error", message: "Plan not found" },
+          { status: 404 },
+        );
+      }
     }
 
     const body = await request.json();
@@ -141,13 +145,20 @@ export async function PUT(
       updateData.price = String(price);
     }
 
-    await db.update(plans).set(updateData).where(eq(plans.id, id));
+    const updateWhere = ownerFilter
+      ? (() => {
+          const ownedRouterSubquery = db.select({ routerId: routers.id }).from(routers).where(ownerFilter);
+          return and(eq(plans.id, id), inArray(plans.routerId, ownedRouterSubquery));
+        })()
+      : eq(plans.id, id);
+
+    await db.update(plans).set(updateData).where(updateWhere);
 
     // Fetch updated plan for device handler and response
     const [updated] = await db
       .select()
       .from(plans)
-      .where(eq(plans.id, id))
+      .where(updateWhere)
       .limit(1);
 
     // Update router profile via device handler
@@ -184,17 +195,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
+    const ownerFilter = routerOwnerFilter(session);
 
-    // Fetch the plan before deleting (for device handler)
+    // Fetch the plan before deleting (for device handler, ownership-filtered)
     const [existing] = await db
       .select()
       .from(plans)
@@ -208,15 +214,36 @@ export async function DELETE(
       );
     }
 
+    if (ownerFilter) {
+      const [owned] = await db
+        .select({ id: routers.id })
+        .from(routers)
+        .where(and(eq(routers.id, existing.routerId), ownerFilter))
+        .limit(1);
+      if (!owned) {
+        return NextResponse.json(
+          { status: "error", message: "Plan not found" },
+          { status: 404 },
+        );
+      }
+    }
+
     // Remove profile from router first
     try {
       const handler = getDeviceHandler(existing.type);
       await handler.removePlan(existing);
-    } catch (handlerError) {
+    } catch {
       // Proceed with deletion even if router sync fails
     }
 
-    await db.delete(plans).where(eq(plans.id, id));
+    const deleteWhere = ownerFilter
+      ? (() => {
+          const ownedRouterSubquery = db.select({ routerId: routers.id }).from(routers).where(ownerFilter);
+          return and(eq(plans.id, id), inArray(plans.routerId, ownedRouterSubquery));
+        })()
+      : eq(plans.id, id);
+
+    await db.delete(plans).where(deleteWhere);
 
     return NextResponse.json({ status: "success", data: null });
   } catch (error: unknown) {
