@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "tsx --env-file=.env scripts/seed-super-admin.ts"
   },
   "dependencies": {
     "better-auth": "^1.6.23",
@@ -20,6 +21,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "tailwind-merge": "^3.6.0",
+    "tsx": "^4.23.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
