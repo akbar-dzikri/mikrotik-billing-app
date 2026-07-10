@@ -75,6 +75,9 @@ export const routers = pgTable(
   'router',
   {
     id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id),
     name: text('name').notNull().unique(),
     host: text('host').notNull(),
     apiPort: integer('api_port').notNull().default(8729),
@@ -88,6 +91,8 @@ export const routers = pgTable(
     lastSeen: timestamp('last_seen', { withTimezone: true }),
     description: text('description'),
     enabled: boolean('enabled').notNull().default(true),
+    createdBy: text('created_by').references(() => user.id),
+    updatedBy: text('updated_by').references(() => user.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -102,6 +107,8 @@ export const pools = pgTable('pool', {
     .notNull()
     .references(() => routers.id, { onDelete: 'cascade' }),
   ranges: text('ranges').notNull(),
+  createdBy: text('created_by').references(() => user.id),
+  updatedBy: text('updated_by').references(() => user.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -124,6 +131,8 @@ export const plans = pgTable('plan', {
   price: numeric('price', { precision: 10, scale: 2 }).notNull().default('0'),
   enabled: boolean('enabled').notNull().default(true),
   poolId: text('pool_id').references(() => pools.id, { onDelete: 'set null' }),
+  createdBy: text('created_by').references(() => user.id),
+  updatedBy: text('updated_by').references(() => user.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -146,6 +155,8 @@ export const customers = pgTable(
     macAddress: text('mac_address'),
     ipAddress: text('ip_address'),
     expiredAt: timestamp('expired_at', { withTimezone: true }),
+    createdBy: text('created_by').references(() => user.id),
+    updatedBy: text('updated_by').references(() => user.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -169,6 +180,8 @@ export const userRecharges = pgTable('user_recharge', {
     .references(() => routers.id, { onDelete: 'cascade' }),
   startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
   expiredAt: timestamp('expired_at', { withTimezone: true }).notNull(),
+  createdBy: text('created_by').references(() => user.id),
+  updatedBy: text('updated_by').references(() => user.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -185,6 +198,8 @@ export const vouchers = pgTable('voucher', {
   used: boolean('used').notNull().default(false),
   usedAt: timestamp('used_at', { withTimezone: true }),
   customerId: text('customer_id'),
+  createdBy: text('created_by').references(() => user.id),
+  updatedBy: text('updated_by').references(() => user.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -203,5 +218,7 @@ export const transactions = pgTable('transaction', {
   amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
   type: transactionTypeEnum('type').notNull(),
   gateway: text('gateway'),
+  createdBy: text('created_by').references(() => user.id),
+  updatedBy: text('updated_by').references(() => user.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
