@@ -1,7 +1,10 @@
 // app/api/mikrotik/route.ts
 import { NextResponse } from "next/server"
+import { getSession } from "@/lib/auth-helpers"
 
 export async function POST(request: Request) {
+    await getSession(request);
+
     try {
         const { username, password } = await request.json()
 
@@ -20,7 +23,8 @@ export async function POST(request: Request) {
 
         const data = await req.json()
         return NextResponse.json(data)
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 })
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Internal server error";
+        return NextResponse.json({ error: message }, { status: 500 })
     }
 }

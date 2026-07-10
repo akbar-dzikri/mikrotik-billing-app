@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth-helpers";
 
 function getAuthHeader(): string {
   const user = process.env.MIKROTIK_USER;
@@ -27,6 +28,8 @@ async function mikrotikFetch(path: string, options: RequestInit = {}) {
 }
 
 export async function GET(request: NextRequest) {
+  await getSession(request);
+
   try {
     const mikrotikRes = await mikrotikFetch("");
     const data = await mikrotikRes.json();
@@ -43,6 +46,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  await getSession(request);
+
   try {
     const body = await request.json();
     const mikrotikRes = await mikrotikFetch("", {
@@ -63,6 +68,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  await getSession(request);
+
   try {
     const body = await request.json();
     const { id } = body;
@@ -92,6 +99,8 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  await getSession(request);
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { getSession, routerOwnerWhere } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
-import { customers, plans } from "@/db/schema/tables";
+import { customers, plans, routers } from "@/db/schema/tables";
 import { getDeviceHandler } from "@/lib/devices/resolver";
 
 // ── GET /api/customers/[id]/online — check online status ──────────
@@ -11,21 +11,23 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    const session = await getSession(request);
 
     const { id } = await params;
 
-    const [customer] = await db
-      .select()
+    const [row] = await db
+      .select({
+        id: customers.id,
+        username: customers.username,
+        routerId: customers.routerId,
+        planId: customers.planId,
+      })
       .from(customers)
-      .where(eq(customers.id, id))
+      .leftJoin(routers, eq(customers.routerId, routers.id))
+      .where(routerOwnerWhere(session, eq(customers.id, id)))
       .limit(1);
+
+    const customer = row;
 
     if (!customer) {
       return NextResponse.json(
