@@ -1,15 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { getSession, routerOwnerWhere } from "@/lib/auth-helpers";
-import { db } from "@/lib/db";
-import { routers } from "@/db/schema/tables";
-import { getRouterClient } from "@/lib/mikrotik-client";
+import { NextRequest, NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
+import { getSession, routerOwnerWhere } from '@/lib/auth-helpers';
+import { db } from '@/lib/db';
+import { routers } from '@/db/schema/tables';
+import { getRouterClient } from '@/lib/mikrotik-client';
 
 // ── POST /api/routers/[id]/test — test connection ─────────────────
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession(request);
 
@@ -23,10 +20,7 @@ export async function POST(
       .limit(1);
 
     if (!router) {
-      return NextResponse.json(
-        { status: "error", message: "Router not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ status: 'error', message: 'Router not found' }, { status: 404 });
     }
 
     const startTime = Date.now();
@@ -46,7 +40,7 @@ export async function POST(
       });
 
       // Run a simple health check command
-      await client.write("/system/resource/print");
+      await client.write('/system/resource/print');
 
       const latency = Math.round(Date.now() - startTime);
 
@@ -54,16 +48,16 @@ export async function POST(
       await db
         .update(routers)
         .set({
-          status: "online",
+          status: 'online',
           lastSeen: new Date(),
           updatedAt: new Date(),
         })
         .where(routerOwnerWhere(session, eq(routers.id, id)));
 
       return NextResponse.json({
-        status: "success",
+        status: 'success',
         data: {
-          status: "online",
+          status: 'online',
           latency,
         },
       });
@@ -71,15 +65,15 @@ export async function POST(
       await db
         .update(routers)
         .set({
-          status: "offline",
+          status: 'offline',
           updatedAt: new Date(),
         })
         .where(routerOwnerWhere(session, eq(routers.id, id)));
 
       return NextResponse.json(
         {
-          status: "error",
-          message: err instanceof Error ? err.message : "Connection failed",
+          status: 'error',
+          message: err instanceof Error ? err.message : 'Connection failed',
         },
         { status: 503 },
       );
@@ -93,11 +87,7 @@ export async function POST(
       }
     }
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }

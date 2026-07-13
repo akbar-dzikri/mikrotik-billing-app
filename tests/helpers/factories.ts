@@ -47,7 +47,10 @@ export function buildSession(overrides?: Partial<SessionResult>): SessionResult 
       updatedAt: now,
     },
   };
-  return mergeDeep(defaults, overrides ?? {}) as SessionResult;
+  return mergeDeep(
+    defaults as unknown as Record<string, unknown>,
+    (overrides ?? {}) as Record<string, unknown>,
+  ) as unknown as SessionResult;
 }
 
 // ── Customer ──────────────────────────────────────────────────────
@@ -218,9 +221,12 @@ function mergeDeep<T extends Record<string, unknown>>(target: T, source: Partial
         !Array.isArray(result[key]) &&
         !(result[key] instanceof Date)
       ) {
-        result[key] = mergeDeep(result[key] as Record<string, unknown>, val as Record<string, unknown>) as T[keyof T];
+        result[key] = mergeDeep(
+          result[key] as Record<string, unknown>,
+          val as Record<string, unknown>,
+        ) as T[keyof T];
       } else {
-        result[key] = val;
+        result[key] = val as T[keyof T];
       }
     }
   }

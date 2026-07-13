@@ -15,7 +15,9 @@ const { mockDb } = vi.hoisted(() => {
     offset: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),
     set: vi.fn().mockReturnThis(),
-    then(resolve: (v: any[]) => void) { resolve([]); },
+    then(resolve: (v: any[]) => void) {
+      resolve([]);
+    },
     catch() {},
     finally() {},
   };

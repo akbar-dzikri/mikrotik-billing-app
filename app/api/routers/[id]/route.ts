@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { getSession, routerOwnerWhere } from "@/lib/auth-helpers";
-import { db } from "@/lib/db";
-import { routers } from "@/db/schema/tables";
-import { encryptPassword } from "@/lib/crypto";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { eq } from 'drizzle-orm';
+import { getSession, routerOwnerWhere } from '@/lib/auth-helpers';
+import { db } from '@/lib/db';
+import { routers } from '@/db/schema/tables';
+import { encryptPassword } from '@/lib/crypto';
 
 // Fields to exclude from all responses
 const safeColumns = {
@@ -34,10 +34,7 @@ const updateRouterSchema = z.object({
 });
 
 // ── GET /api/routers/[id] — single router ─────────────────────────
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession(request);
 
@@ -50,28 +47,18 @@ export async function GET(
       .limit(1);
 
     if (!router) {
-      return NextResponse.json(
-        { status: "error", message: "Router not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ status: 'error', message: 'Router not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ status: "success", data: router });
+    return NextResponse.json({ status: 'success', data: router });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }
 
 // ── PUT /api/routers/[id] — update router ─────────────────────────
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession(request);
 
@@ -85,10 +72,7 @@ export async function PUT(
       .limit(1);
 
     if (!existing) {
-      return NextResponse.json(
-        { status: "error", message: "Router not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ status: 'error', message: 'Router not found' }, { status: 404 });
     }
 
     const body = await request.json();
@@ -97,8 +81,8 @@ export async function PUT(
     if (!parsed.success) {
       return NextResponse.json(
         {
-          status: "error",
-          message: "Validation failed",
+          status: 'error',
+          message: 'Validation failed',
           errors: parsed.error.flatten().fieldErrors,
         },
         { status: 400 },
@@ -118,7 +102,7 @@ export async function PUT(
       // Clear fingerprint — will be re-established on next test-connection
       updateData.tlsFingerprint = null;
       updateData.tlsVerified = false;
-      updateData.status = "unknown";
+      updateData.status = 'unknown';
     }
 
     await db
@@ -133,14 +117,10 @@ export async function PUT(
       .where(routerOwnerWhere(session, eq(routers.id, id)))
       .limit(1);
 
-    return NextResponse.json({ status: "success", data: updated });
+    return NextResponse.json({ status: 'success', data: updated });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }
 
@@ -161,21 +141,14 @@ export async function DELETE(
       .limit(1);
 
     if (!existing) {
-      return NextResponse.json(
-        { status: "error", message: "Router not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ status: 'error', message: 'Router not found' }, { status: 404 });
     }
 
     await db.delete(routers).where(routerOwnerWhere(session, eq(routers.id, id)));
 
-    return NextResponse.json({ status: "success", data: null });
+    return NextResponse.json({ status: 'success', data: null });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }

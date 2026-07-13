@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { randomUUID } from "crypto";
-import { and, eq } from "drizzle-orm";
-import { getSession, routerOwnerFilter } from "@/lib/auth-helpers";
-import { db } from "@/lib/db";
-import { customers, plans, routers } from "@/db/schema/tables";
-import { getDeviceHandler } from "@/lib/devices/resolver";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { randomUUID } from 'crypto';
+import { and, eq } from 'drizzle-orm';
+import { getSession, routerOwnerFilter } from '@/lib/auth-helpers';
+import { db } from '@/lib/db';
+import { customers, plans, routers } from '@/db/schema/tables';
+import { getDeviceHandler } from '@/lib/devices/resolver';
 
 // ── Zod schemas ───────────────────────────────────────────────────
 const createCustomerSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
   fullName: z.string().optional(),
-  email: z.string().email().optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
-  routerId: z.string().min(1, "Router is required"),
-  planId: z.string().min(1, "Plan is required"),
-  status: z.enum(["active", "expired", "disabled"]).default("active"),
+  routerId: z.string().min(1, 'Router is required'),
+  planId: z.string().min(1, 'Plan is required'),
+  status: z.enum(['active', 'expired', 'disabled']).default('active'),
   macAddress: z.string().optional(),
   ipAddress: z.string().optional(),
   expiredAt: z.string().datetime().optional(),
@@ -52,20 +52,14 @@ export async function GET(request: NextRequest) {
       .leftJoin(routers, eq(customers.routerId, routers.id))
       .leftJoin(plans, eq(customers.planId, plans.id));
 
-    const filteredQuery = ownerFilter
-      ? baseQuery.where(ownerFilter)
-      : baseQuery;
+    const filteredQuery = ownerFilter ? baseQuery.where(ownerFilter) : baseQuery;
 
     const allCustomers = await filteredQuery.orderBy(customers.createdAt);
 
-    return NextResponse.json({ status: "success", data: allCustomers });
+    return NextResponse.json({ status: 'success', data: allCustomers });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }
 
@@ -80,8 +74,8 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         {
-          status: "error",
-          message: "Validation failed",
+          status: 'error',
+          message: 'Validation failed',
           errors: parsed.error.flatten().fieldErrors,
         },
         { status: 400 },
@@ -115,25 +109,15 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (!router) {
-        return NextResponse.json(
-          { status: "error", message: "Router not found" },
-          { status: 404 },
-        );
+        return NextResponse.json({ status: 'error', message: 'Router not found' }, { status: 404 });
       }
     }
 
     // Fetch the plan for device handler
-    const [plan] = await db
-      .select()
-      .from(plans)
-      .where(eq(plans.id, planId))
-      .limit(1);
+    const [plan] = await db.select().from(plans).where(eq(plans.id, planId)).limit(1);
 
     if (!plan) {
-      return NextResponse.json(
-        { status: "error", message: "Plan not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ status: 'error', message: 'Plan not found' }, { status: 404 });
     }
 
     const customerData = {
@@ -165,27 +149,20 @@ export async function POST(request: NextRequest) {
     } catch (handlerError) {
       return NextResponse.json(
         {
-          status: "success",
+          status: 'success',
           data: customerData,
           warning:
             handlerError instanceof Error
               ? handlerError.message
-              : "Failed to sync customer to router",
+              : 'Failed to sync customer to router',
         },
         { status: 201 },
       );
     }
 
-    return NextResponse.json(
-      { status: "success", data: customerData },
-      { status: 201 },
-    );
+    return NextResponse.json({ status: 'success', data: customerData }, { status: 201 });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }

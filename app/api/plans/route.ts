@@ -1,24 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { randomUUID } from "crypto";
-import { and, eq } from "drizzle-orm";
-import { getSession, routerOwnerFilter } from "@/lib/auth-helpers";
-import { db } from "@/lib/db";
-import { plans, routers } from "@/db/schema/tables";
-import { getDeviceHandler } from "@/lib/devices/resolver";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { randomUUID } from 'crypto';
+import { and, eq } from 'drizzle-orm';
+import { getSession, routerOwnerFilter } from '@/lib/auth-helpers';
+import { db } from '@/lib/db';
+import { plans, routers } from '@/db/schema/tables';
+import { getDeviceHandler } from '@/lib/devices/resolver';
 
 // ── Zod schemas ───────────────────────────────────────────────────
 const createPlanSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  type: z.enum(["hotspot", "pppoe"]).default("hotspot"),
-  routerId: z.string().min(1, "Router is required"),
+  name: z.string().min(1, 'Name is required'),
+  type: z.enum(['hotspot', 'pppoe']).default('hotspot'),
+  routerId: z.string().min(1, 'Router is required'),
   sharedUsers: z.coerce.number().int().default(1),
   rateLimitDown: z.string().optional(),
   rateLimitUp: z.string().optional(),
   burstLimit: z.string().optional(),
   timeLimit: z.coerce.number().int().optional(),
   dataLimit: z.coerce.number().int().optional(),
-  validity: z.coerce.number().int("Validity is required"),
+  validity: z.coerce.number().int('Validity is required'),
   price: z.coerce.number().default(0),
   enabled: z.boolean().default(true),
   poolId: z.string().optional(),
@@ -59,14 +59,10 @@ export async function GET(request: NextRequest) {
 
     const allPlans = await query.orderBy(plans.createdAt);
 
-    return NextResponse.json({ status: "success", data: allPlans });
+    return NextResponse.json({ status: 'success', data: allPlans });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }
 
@@ -81,8 +77,8 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         {
-          status: "error",
-          message: "Validation failed",
+          status: 'error',
+          message: 'Validation failed',
           errors: parsed.error.flatten().fieldErrors,
         },
         { status: 400 },
@@ -114,10 +110,7 @@ export async function POST(request: NextRequest) {
         .where(and(eq(routers.id, routerId), ownerFilter))
         .limit(1);
       if (!router) {
-        return NextResponse.json(
-          { status: "error", message: "Router not found" },
-          { status: 404 },
-        );
+        return NextResponse.json({ status: 'error', message: 'Router not found' }, { status: 404 });
       }
     }
 
@@ -147,11 +140,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Fetch the created plan with router info for device handler
-    const [created] = await db
-      .select()
-      .from(plans)
-      .where(eq(plans.id, planId))
-      .limit(1);
+    const [created] = await db.select().from(plans).where(eq(plans.id, planId)).limit(1);
 
     // Create profile on the router via device handler
     try {
@@ -161,24 +150,18 @@ export async function POST(request: NextRequest) {
       // If router sync fails, we still return the plan but with a warning
       return NextResponse.json(
         {
-          status: "success",
+          status: 'success',
           data: created,
           warning:
-            handlerError instanceof Error
-              ? handlerError.message
-              : "Failed to sync plan to router",
+            handlerError instanceof Error ? handlerError.message : 'Failed to sync plan to router',
         },
         { status: 201 },
       );
     }
 
-    return NextResponse.json({ status: "success", data: created }, { status: 201 });
+    return NextResponse.json({ status: 'success', data: created }, { status: 201 });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }

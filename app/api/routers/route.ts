@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { randomUUID } from "crypto";
-import { eq } from "drizzle-orm";
-import tls from "tls";
-import { getSession, routerOwnerFilter } from "@/lib/auth-helpers";
-import { db } from "@/lib/db";
-import { routers } from "@/db/schema/tables";
-import { encryptPassword } from "@/lib/crypto";
-import { getRouterClient } from "@/lib/mikrotik-client";
-import { getCertFingerprint } from "@/lib/tls-fingerprint";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { randomUUID } from 'crypto';
+import { eq } from 'drizzle-orm';
+import tls from 'tls';
+import { getSession, routerOwnerFilter } from '@/lib/auth-helpers';
+import { db } from '@/lib/db';
+import { routers } from '@/db/schema/tables';
+import { encryptPassword } from '@/lib/crypto';
+import { getRouterClient } from '@/lib/mikrotik-client';
+import { getCertFingerprint } from '@/lib/tls-fingerprint';
 
 // ── Zod schemas ───────────────────────────────────────────────────
 const createRouterSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  host: z.string().min(1, "Host is required"),
+  name: z.string().min(1, 'Name is required'),
+  host: z.string().min(1, 'Host is required'),
   apiPort: z.coerce.number().int().default(8729),
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
   description: z.string().optional(),
 });
 
@@ -50,14 +50,10 @@ export async function GET(request: NextRequest) {
       .where(ownerFilter ?? undefined)
       .orderBy(routers.createdAt);
 
-    return NextResponse.json({ status: "success", data: allRouters });
+    return NextResponse.json({ status: 'success', data: allRouters });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }
 
@@ -72,16 +68,15 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         {
-          status: "error",
-          message: "Validation failed",
+          status: 'error',
+          message: 'Validation failed',
           errors: parsed.error.flatten().fieldErrors,
         },
         { status: 400 },
       );
     }
 
-    const { name, host, apiPort, username, password, description } =
-      parsed.data;
+    const { name, host, apiPort, username, password, description } = parsed.data;
 
     // Encrypt the password
     const { ciphertext, iv, authTag } = encryptPassword(password);
@@ -137,7 +132,7 @@ export async function POST(request: NextRequest) {
       encryptionTag: authTag,
       tlsFingerprint,
       tlsVerified: false,
-      status: tlsFingerprint ? "online" : "unknown",
+      status: tlsFingerprint ? 'online' : 'unknown',
       lastSeen: tlsFingerprint ? now : null,
       description: description ?? null,
       enabled: true,
@@ -154,13 +149,9 @@ export async function POST(request: NextRequest) {
       .where(eq(routers.id, routerId))
       .limit(1);
 
-    return NextResponse.json({ status: "success", data: created }, { status: 201 });
+    return NextResponse.json({ status: 'success', data: created }, { status: 201 });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }

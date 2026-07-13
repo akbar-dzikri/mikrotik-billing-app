@@ -24,16 +24,8 @@ export function encryptPassword(plaintext: string): {
   };
 }
 
-export function decryptPassword(
-  ciphertext: string,
-  iv: string,
-  authTag: string,
-): string {
-  const decipher = createDecipheriv(
-    ALGORITHM,
-    getKey(),
-    Buffer.from(iv, 'hex'),
-  );
+export function decryptPassword(ciphertext: string, iv: string, authTag: string): string {
+  const decipher = createDecipheriv(ALGORITHM, getKey(), Buffer.from(iv, 'hex'));
   decipher.setAuthTag(Buffer.from(authTag, 'hex'));
   let decrypted = decipher.update(ciphertext, 'hex', 'utf8');
   decrypted += decipher.final('utf8');

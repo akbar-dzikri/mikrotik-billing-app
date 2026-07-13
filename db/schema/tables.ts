@@ -160,10 +160,7 @@ export const customers = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [
-    index('customer_router_idx').on(t.routerId),
-    index('customer_status_idx').on(t.status),
-  ],
+  (t) => [index('customer_router_idx').on(t.routerId), index('customer_status_idx').on(t.status)],
 );
 
 // ── Recharges ─────────────────────────────────────────────────────

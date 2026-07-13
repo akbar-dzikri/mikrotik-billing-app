@@ -1,20 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth-helpers";
+import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth-helpers';
 
 function getAuthHeader(): string {
   const user = process.env.MIKROTIK_USER;
   const password = process.env.MIKROTIK_PASSWORD;
-  return "Basic " + Buffer.from(`${user}:${password}`).toString("base64");
+  return 'Basic ' + Buffer.from(`${user}:${password}`).toString('base64');
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_MIKROTIK_URL + "/rest/ip/hotspot/user";
+const BASE_URL = process.env.NEXT_PUBLIC_MIKROTIK_URL + '/rest/ip/hotspot/user';
 
 async function mikrotikFetch(path: string, options: RequestInit = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
       Authorization: getAuthHeader(),
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> | undefined),
     },
   });
@@ -31,17 +31,13 @@ export async function GET(request: NextRequest) {
   await getSession(request);
 
   try {
-    const mikrotikRes = await mikrotikFetch("");
+    const mikrotikRes = await mikrotikFetch('');
     const data = await mikrotikRes.json();
 
-    return NextResponse.json({ status: "success", data });
+    return NextResponse.json({ status: 'success', data });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message, code: 500 },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message, code: 500 }, { status: 500 });
   }
 }
 
@@ -50,20 +46,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const mikrotikRes = await mikrotikFetch("", {
-      method: "POST",
+    const mikrotikRes = await mikrotikFetch('', {
+      method: 'POST',
       body: JSON.stringify(body),
     });
     const data = await mikrotikRes.json();
 
-    return NextResponse.json({ status: "success", data }, { status: 201 });
+    return NextResponse.json({ status: 'success', data }, { status: 201 });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message, code: 500 },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message, code: 500 }, { status: 500 });
   }
 }
 
@@ -76,25 +68,21 @@ export async function PUT(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { status: "error", message: "Voucher id is required", code: 400 },
+        { status: 'error', message: 'Voucher id is required', code: 400 },
         { status: 400 },
       );
     }
 
     const mikrotikRes = await mikrotikFetch(`/${id}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(body),
     });
     const data = await mikrotikRes.json();
 
-    return NextResponse.json({ status: "success", data });
+    return NextResponse.json({ status: 'success', data });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message, code: 500 },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message, code: 500 }, { status: 500 });
   }
 }
 
@@ -103,27 +91,20 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const id = searchParams.get('id');
 
     if (!id) {
       return NextResponse.json(
-        { status: "error", message: "Voucher id is required", code: 400 },
+        { status: 'error', message: 'Voucher id is required', code: 400 },
         { status: 400 },
       );
     }
 
-    await mikrotikFetch(`/${id}`, { method: "DELETE" });
+    await mikrotikFetch(`/${id}`, { method: 'DELETE' });
 
-    return NextResponse.json(
-      { status: "success", data: null },
-      { status: 204 },
-    );
+    return NextResponse.json({ status: 'success', data: null }, { status: 204 });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message, code: 500 },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message, code: 500 }, { status: 500 });
   }
 }

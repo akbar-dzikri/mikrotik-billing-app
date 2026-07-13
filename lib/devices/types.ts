@@ -1,5 +1,5 @@
-import type { InferSelectModel } from "drizzle-orm";
-import { customers, plans, pools } from "@/db/schema/tables";
+import type { InferSelectModel } from 'drizzle-orm';
+import { customers, plans, pools } from '@/db/schema/tables';
 
 export type Customer = InferSelectModel<typeof customers>;
 export type Plan = InferSelectModel<typeof plans>;

@@ -4,7 +4,7 @@
 
 Two separate authentication domains:
 
-| Layer           | Mechanism                                                           | Responsibility                                                |
+| Layer | Mechanism | Responsibility |
 | ---
 
 ## 14. Implementation Status (2026-07-09)
@@ -73,8 +73,8 @@ docs/
 - [ ] Audit logging for all MikroTik operations
 - [ ] PPPoE device handler
 - [ ] Payment gateway integration------------ | ------------------------------------------------------------------- | ------------------------------------------------------------- |
-| **App Auth**    | BetterAuth (email/password, session cookie)                         | Dashboard users — who can log in, roles, sessions             |
-| **Router Auth** | AES-256-GCM encrypted in DB, decrypted server-side at API call time | MikroTik RouterOS credentials — never exposed to the frontend |
+      | **App Auth** | BetterAuth (email/password, session cookie) | Dashboard users — who can log in, roles, sessions |
+      | **Router Auth** | AES-256-GCM encrypted in DB, decrypted server-side at API call time | MikroTik RouterOS credentials — never exposed to the frontend |
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -106,7 +106,7 @@ docs/
 | Framework         | Next.js 16+ (App Router)                           |
 | Language          | TypeScript                                         |
 | Database          | PostgreSQL                                         |
-| ORM               | Drizzle ORM (`drizzle-orm` + `drizzle-kit`)       |
+| ORM               | Drizzle ORM (`drizzle-orm` + `drizzle-kit`)        |
 | App Auth          | BetterAuth (email/password provider)               |
 | Router API Client | `node-routeros` (RouterOS API protocol)            |
 | Encryption        | Node.js `crypto` — AES-256-GCM                     |
@@ -123,13 +123,13 @@ docs/
 
 ```typescript
 // db/schema/enums.ts
-import { pgEnum } from "drizzle-orm/pg-core";
+import { pgEnum } from 'drizzle-orm/pg-core';
 
-export const roleEnum = pgEnum("role", ["super_admin", "admin"]);
-export const routerStatusEnum = pgEnum("router_status", ["online", "offline", "unknown"]);
-export const planTypeEnum = pgEnum("plan_type", ["hotspot", "pppoe"]);
-export const customerStatusEnum = pgEnum("customer_status", ["active", "expired", "disabled"]);
-export const transactionTypeEnum = pgEnum("transaction_type", ["recharge", "voucher", "refund"]);
+export const roleEnum = pgEnum('role', ['super_admin', 'admin']);
+export const routerStatusEnum = pgEnum('router_status', ['online', 'offline', 'unknown']);
+export const planTypeEnum = pgEnum('plan_type', ['hotspot', 'pppoe']);
+export const customerStatusEnum = pgEnum('customer_status', ['active', 'expired', 'disabled']);
+export const transactionTypeEnum = pgEnum('transaction_type', ['recharge', 'voucher', 'refund']);
 ```
 
 ### 3.2 Tables
@@ -146,25 +146,25 @@ import {
   numeric,
   uniqueIndex,
   index,
-} from "drizzle-orm/pg-core";
+} from 'drizzle-orm/pg-core';
 import {
   roleEnum,
   routerStatusEnum,
   planTypeEnum,
   customerStatusEnum,
   transactionTypeEnum,
-} from "./enums";
+} from './enums';
 
 // ── App Users (dashboard admins) ──────────────────────────────────
-export const users = pgTable("user", {
-  id: text("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").notNull(),
-  name: text("name"),
-  role: roleEnum("role").notNull().default("admin"),
-  lastLogin: timestamp("last_login", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+export const users = pgTable('user', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').notNull(),
+  name: text('name'),
+  role: roleEnum('role').notNull().default('admin'),
+  lastLogin: timestamp('last_login', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // BetterAuth managed tables (created by BetterAuth CLI / migrations):
@@ -175,138 +175,135 @@ export const users = pgTable("user", {
 
 // ── Routers ───────────────────────────────────────────────────────
 export const routers = pgTable(
-  "router",
+  'router',
   {
-    id: text("id").primaryKey(),
-    name: text("name").notNull().unique(),
-    host: text("host").notNull(),
-    apiPort: integer("api_port").notNull().default(8729),
-    username: text("username").notNull(),
-    encryptedPassword: text("encrypted_password").notNull(),
-    encryptionIv: text("encryption_iv").notNull(),
-    encryptionTag: text("encryption_tag").notNull(),
-    tlsFingerprint: text("tls_fingerprint"),
-    tlsVerified: boolean("tls_verified").notNull().default(false),
-    status: routerStatusEnum("status").notNull().default("unknown"),
-    lastSeen: timestamp("last_seen", { withTimezone: true }),
-    description: text("description"),
-    enabled: boolean("enabled").notNull().default(true),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    id: text('id').primaryKey(),
+    name: text('name').notNull().unique(),
+    host: text('host').notNull(),
+    apiPort: integer('api_port').notNull().default(8729),
+    username: text('username').notNull(),
+    encryptedPassword: text('encrypted_password').notNull(),
+    encryptionIv: text('encryption_iv').notNull(),
+    encryptionTag: text('encryption_tag').notNull(),
+    tlsFingerprint: text('tls_fingerprint'),
+    tlsVerified: boolean('tls_verified').notNull().default(false),
+    status: routerStatusEnum('status').notNull().default('unknown'),
+    lastSeen: timestamp('last_seen', { withTimezone: true }),
+    description: text('description'),
+    enabled: boolean('enabled').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("router_status_idx").on(t.status)],
+  (t) => [index('router_status_idx').on(t.status)],
 );
 
 // ── Plans ─────────────────────────────────────────────────────────
-export const plans = pgTable("plan", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  type: planTypeEnum("type").notNull().default("hotspot"),
-  routerId: text("router_id")
+export const plans = pgTable('plan', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  type: planTypeEnum('type').notNull().default('hotspot'),
+  routerId: text('router_id')
     .notNull()
-    .references(() => routers.id, { onDelete: "cascade" }),
-  sharedUsers: integer("shared_users").notNull().default(1),
-  rateLimitDown: text("rate_limit_down"),
-  rateLimitUp: text("rate_limit_up"),
-  burstLimit: text("burst_limit"),
-  timeLimit: integer("time_limit"),
-  dataLimit: bigint("data_limit", { mode: "bigint" }),
-  validity: integer("validity").notNull(),
-  price: numeric("price", { precision: 10, scale: 2 }).notNull().default("0"),
-  enabled: boolean("enabled").notNull().default(true),
-  poolId: text("pool_id").references(() => pools.id, { onDelete: "set null" }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    .references(() => routers.id, { onDelete: 'cascade' }),
+  sharedUsers: integer('shared_users').notNull().default(1),
+  rateLimitDown: text('rate_limit_down'),
+  rateLimitUp: text('rate_limit_up'),
+  burstLimit: text('burst_limit'),
+  timeLimit: integer('time_limit'),
+  dataLimit: bigint('data_limit', { mode: 'bigint' }),
+  validity: integer('validity').notNull(),
+  price: numeric('price', { precision: 10, scale: 2 }).notNull().default('0'),
+  enabled: boolean('enabled').notNull().default(true),
+  poolId: text('pool_id').references(() => pools.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // ── IP Pools ──────────────────────────────────────────────────────
-export const pools = pgTable("pool", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  routerId: text("router_id")
+export const pools = pgTable('pool', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  routerId: text('router_id')
     .notNull()
-    .references(() => routers.id, { onDelete: "cascade" }),
-  ranges: text("ranges").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    .references(() => routers.id, { onDelete: 'cascade' }),
+  ranges: text('ranges').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // ── Customers ─────────────────────────────────────────────────────
 export const customers = pgTable(
-  "customer",
+  'customer',
   {
-    id: text("id").primaryKey(),
-    username: text("username").notNull(),
-    password: text("password").notNull(),
-    fullName: text("full_name"),
-    email: text("email"),
-    phone: text("phone"),
-    routerId: text("router_id")
+    id: text('id').primaryKey(),
+    username: text('username').notNull(),
+    password: text('password').notNull(),
+    fullName: text('full_name'),
+    email: text('email'),
+    phone: text('phone'),
+    routerId: text('router_id')
       .notNull()
-      .references(() => routers.id, { onDelete: "cascade" }),
-    planId: text("plan_id").references(() => plans.id, { onDelete: "set null" }),
-    status: customerStatusEnum("status").notNull().default("active"),
-    macAddress: text("mac_address"),
-    ipAddress: text("ip_address"),
-    expiredAt: timestamp("expired_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+      .references(() => routers.id, { onDelete: 'cascade' }),
+    planId: text('plan_id').references(() => plans.id, { onDelete: 'set null' }),
+    status: customerStatusEnum('status').notNull().default('active'),
+    macAddress: text('mac_address'),
+    ipAddress: text('ip_address'),
+    expiredAt: timestamp('expired_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [
-    index("customer_router_idx").on(t.routerId),
-    index("customer_status_idx").on(t.status),
-  ],
+  (t) => [index('customer_router_idx').on(t.routerId), index('customer_status_idx').on(t.status)],
 );
 
 // ── Recharges ─────────────────────────────────────────────────────
-export const userRecharges = pgTable("user_recharge", {
-  id: text("id").primaryKey(),
-  customerId: text("customer_id")
+export const userRecharges = pgTable('user_recharge', {
+  id: text('id').primaryKey(),
+  customerId: text('customer_id')
     .notNull()
-    .references(() => customers.id, { onDelete: "cascade" }),
-  planId: text("plan_id")
+    .references(() => customers.id, { onDelete: 'cascade' }),
+  planId: text('plan_id')
     .notNull()
-    .references(() => plans.id, { onDelete: "cascade" }),
-  routerId: text("router_id")
+    .references(() => plans.id, { onDelete: 'cascade' }),
+  routerId: text('router_id')
     .notNull()
-    .references(() => routers.id, { onDelete: "cascade" }),
-  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
-  expiredAt: timestamp("expired_at", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    .references(() => routers.id, { onDelete: 'cascade' }),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  expiredAt: timestamp('expired_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // ── Vouchers ──────────────────────────────────────────────────────
-export const vouchers = pgTable("voucher", {
-  id: text("id").primaryKey(),
-  code: text("code").notNull().unique(),
-  planId: text("plan_id")
+export const vouchers = pgTable('voucher', {
+  id: text('id').primaryKey(),
+  code: text('code').notNull().unique(),
+  planId: text('plan_id')
     .notNull()
-    .references(() => plans.id, { onDelete: "cascade" }),
-  routerId: text("router_id")
+    .references(() => plans.id, { onDelete: 'cascade' }),
+  routerId: text('router_id')
     .notNull()
-    .references(() => routers.id, { onDelete: "cascade" }),
-  used: boolean("used").notNull().default(false),
-  usedAt: timestamp("used_at", { withTimezone: true }),
-  customerId: text("customer_id"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    .references(() => routers.id, { onDelete: 'cascade' }),
+  used: boolean('used').notNull().default(false),
+  usedAt: timestamp('used_at', { withTimezone: true }),
+  customerId: text('customer_id'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // ── Transactions ──────────────────────────────────────────────────
-export const transactions = pgTable("transaction", {
-  id: text("id").primaryKey(),
-  customerId: text("customer_id")
+export const transactions = pgTable('transaction', {
+  id: text('id').primaryKey(),
+  customerId: text('customer_id')
     .notNull()
-    .references(() => customers.id, { onDelete: "cascade" }),
-  planId: text("plan_id")
+    .references(() => customers.id, { onDelete: 'cascade' }),
+  planId: text('plan_id')
     .notNull()
-    .references(() => plans.id, { onDelete: "cascade" }),
-  routerId: text("router_id")
+    .references(() => plans.id, { onDelete: 'cascade' }),
+  routerId: text('router_id')
     .notNull()
-    .references(() => routers.id, { onDelete: "cascade" }),
-  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
-  type: transactionTypeEnum("type").notNull(),
-  gateway: text("gateway"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    .references(() => routers.id, { onDelete: 'cascade' }),
+  amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
+  type: transactionTypeEnum('type').notNull(),
+  gateway: text('gateway'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 ```
 
@@ -314,8 +311,8 @@ export const transactions = pgTable("transaction", {
 
 ```typescript
 // db/schema/relations.ts
-import { relations } from "drizzle-orm";
-import { routers, plans, pools, customers, userRecharges, vouchers, transactions } from "./tables";
+import { relations } from 'drizzle-orm';
+import { routers, plans, pools, customers, userRecharges, vouchers, transactions } from './tables';
 
 export const routersRelations = relations(routers, ({ many }) => ({
   plans: many(plans),
@@ -372,10 +369,10 @@ BetterAuth manages its own tables (`user`, `session`, `account`, `verification`)
 ### 4.1 RouterCredential Manager (`lib/crypto.ts`)
 
 ```typescript
-import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
-const ALGORITHM = "aes-256-gcm";
-const KEY = Buffer.from(process.env.ROUTER_ENCRYPTION_KEY!, "hex"); // 64-char hex string
+const ALGORITHM = 'aes-256-gcm';
+const KEY = Buffer.from(process.env.ROUTER_ENCRYPTION_KEY!, 'hex'); // 64-char hex string
 
 export function encryptPassword(plaintext: string): {
   ciphertext: string;
@@ -384,24 +381,20 @@ export function encryptPassword(plaintext: string): {
 } {
   const iv = randomBytes(16);
   const cipher = createCipheriv(ALGORITHM, KEY, iv);
-  let encrypted = cipher.update(plaintext, "utf8", "hex");
-  encrypted += cipher.final("hex");
+  let encrypted = cipher.update(plaintext, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
   return {
     ciphertext: encrypted,
-    iv: iv.toString("hex"),
-    authTag: cipher.getAuthTag().toString("hex"),
+    iv: iv.toString('hex'),
+    authTag: cipher.getAuthTag().toString('hex'),
   };
 }
 
-export function decryptPassword(
-  ciphertext: string,
-  iv: string,
-  authTag: string,
-): string {
-  const decipher = createDecipheriv(ALGORITHM, KEY, Buffer.from(iv, "hex"));
-  decipher.setAuthTag(Buffer.from(authTag, "hex"));
-  let decrypted = decipher.update(ciphertext, "hex", "utf8");
-  decrypted += decipher.final("utf8");
+export function decryptPassword(ciphertext: string, iv: string, authTag: string): string {
+  const decipher = createDecipheriv(ALGORITHM, KEY, Buffer.from(iv, 'hex'));
+  decipher.setAuthTag(Buffer.from(authTag, 'hex'));
+  let decrypted = decipher.update(ciphertext, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
   return decrypted;
 }
 ```
@@ -446,13 +439,13 @@ EVERY SUBSEQUENT CONNECTION:
 ### 5.3 Implementation (`lib/tls-fingerprint.ts`)
 
 ```typescript
-import tls from "tls";
-import crypto from "crypto";
+import tls from 'tls';
+import crypto from 'crypto';
 
 export function getCertFingerprint(socket: tls.TLSSocket): string {
   const cert = socket.getPeerCertificate(true);
-  if (!cert || !cert.raw) throw new Error("No peer certificate presented");
-  return crypto.createHash("sha256").update(cert.raw).digest("hex");
+  if (!cert || !cert.raw) throw new Error('No peer certificate presented');
+  return crypto.createHash('sha256').update(cert.raw).digest('hex');
 }
 ```
 
@@ -475,12 +468,12 @@ POST /api/routers/{id}/letsencrypt
 ### 6.1 Connection Manager (`lib/mikrotik-client.ts`)
 
 ```typescript
-import { createConnection, RosConnection } from "node-routeros";
-import { decryptPassword } from "./crypto";
-import { getCertFingerprint } from "./tls-fingerprint";
-import { db } from "./db";
-import { routers } from "@/db/schema/tables";
-import { eq } from "drizzle-orm";
+import { createConnection, RosConnection } from 'node-routeros';
+import { decryptPassword } from './crypto';
+import { getCertFingerprint } from './tls-fingerprint';
+import { db } from './db';
+import { routers } from '@/db/schema/tables';
+import { eq } from 'drizzle-orm';
 
 interface RouterRecord {
   id: string;
@@ -494,9 +487,7 @@ interface RouterRecord {
   tlsVerified: boolean;
 }
 
-export async function getRouterClient(
-  router: RouterRecord,
-): Promise<RosConnection> {
+export async function getRouterClient(router: RouterRecord): Promise<RosConnection> {
   const password = decryptPassword(
     router.encryptedPassword,
     router.encryptionIv,
@@ -508,18 +499,14 @@ export async function getRouterClient(
     port: router.apiPort,
     user: router.username,
     password,
-    tls: router.tlsVerified
-      ? { rejectUnauthorized: true }
-      : { rejectUnauthorized: false },
+    tls: router.tlsVerified ? { rejectUnauthorized: true } : { rejectUnauthorized: false },
   });
 
   if (!router.tlsVerified && router.tlsFingerprint) {
     const fingerprint = getCertFingerprint(client.socket as tls.TLSSocket);
     if (fingerprint !== router.tlsFingerprint) {
       client.close();
-      throw new Error(
-        `TLS fingerprint mismatch for router. Possible MITM attack.`,
-      );
+      throw new Error(`TLS fingerprint mismatch for router. Possible MITM attack.`);
     }
   }
 
@@ -529,9 +516,7 @@ export async function getRouterClient(
 // Connection pool — one persistent connection per router, recreated on failure
 const clientPool = new Map<string, RosConnection>();
 
-export async function getOrCreateClient(
-  routerId: string,
-): Promise<RosConnection> {
+export async function getOrCreateClient(routerId: string): Promise<RosConnection> {
   const cached = clientPool.get(routerId);
   if (cached && cached.connected) return cached;
 
@@ -575,7 +560,7 @@ export async function getOrCreateClient(
 ### 7.1 Interface (`lib/devices/types.ts`)
 
 ```typescript
-import type { Customer, Plan, Pool } from "@/db/schema/tables";
+import type { Customer, Plan, Pool } from '@/db/schema/tables';
 
 export interface DeviceHandler {
   description(): DeviceInfo;
@@ -623,17 +608,17 @@ export interface OnlineStatus {
 ### 7.2 Hotspot Handler (`lib/devices/mikrotik-hotspot.ts`)
 
 ```typescript
-import { getOrCreateClient } from "../mikrotik-client";
-import type { DeviceHandler, OnlineStatus } from "./types";
-import type { Customer, Plan } from "@/db/schema/tables";
+import { getOrCreateClient } from '../mikrotik-client';
+import type { DeviceHandler, OnlineStatus } from './types';
+import type { Customer, Plan } from '@/db/schema/tables';
 
 export class MikrotikHotspot implements DeviceHandler {
   description() {
     return {
-      title: "MikroTik Hotspot",
-      description: "Manage hotspot users and profiles on MikroTik RouterOS",
-      author: "PHPNuxBill",
-      url: "https://mikrotik.com",
+      title: 'MikroTik Hotspot',
+      description: 'Manage hotspot users and profiles on MikroTik RouterOS',
+      author: 'PHPNuxBill',
+      url: 'https://mikrotik.com',
     };
   }
 
@@ -647,41 +632,34 @@ export class MikrotikHotspot implements DeviceHandler {
     ];
     if (customer.email) args.push(`=email=${customer.email}`);
 
-    await client.write("/ip/hotspot/user/add", args);
+    await client.write('/ip/hotspot/user/add', args);
   }
 
   async removeCustomer(customer: Customer, _plan: Plan) {
     const client = await getOrCreateClient(customer.routerId);
 
-    const users = await client.write("/ip/hotspot/user/print", [
+    const users = await client.write('/ip/hotspot/user/print', [
       `?name=${customer.username}`,
-      "=.proplist=.id",
+      '=.proplist=.id',
     ]);
 
     if (users.length > 0) {
-      await client.write("/ip/hotspot/user/remove", [
-        `=.id=${users[0][".id"]}`,
-      ]);
+      await client.write('/ip/hotspot/user/remove', [`=.id=${users[0]['.id']}`]);
     }
 
     await this._disconnectActive(client, customer.username);
   }
 
-  async onlineCustomer(
-    username: string,
-    routerId: string,
-  ): Promise<OnlineStatus | null> {
+  async onlineCustomer(username: string, routerId: string): Promise<OnlineStatus | null> {
     const client = await getOrCreateClient(routerId);
-    const active = await client.write("/ip/hotspot/active/print", [
-      `?user=${username}`,
-    ]);
+    const active = await client.write('/ip/hotspot/active/print', [`?user=${username}`]);
 
     if (active.length === 0) return null;
 
     return {
-      sessionId: active[0][".id"],
+      sessionId: active[0]['.id'],
       ipAddress: active[0].address,
-      macAddress: active[0]["mac-address"],
+      macAddress: active[0]['mac-address'],
       uptime: active[0].uptime,
     };
   }
@@ -699,7 +677,7 @@ export class MikrotikHotspot implements DeviceHandler {
     routerId: string,
   ) {
     const client = await getOrCreateClient(routerId);
-    await client.write("/ip/hotspot/active/login", [
+    await client.write('/ip/hotspot/active/login', [
       `=user=${username}`,
       `=password=${password}`,
       `=ip=${ip}`,
@@ -709,9 +687,9 @@ export class MikrotikHotspot implements DeviceHandler {
 
   async addPlan(plan: Plan) {
     const client = await getOrCreateClient(plan.routerId);
-    const rateLimit = `${plan.rateLimitUp || "0"}/${plan.rateLimitDown || "0"}`;
+    const rateLimit = `${plan.rateLimitUp || '0'}/${plan.rateLimitDown || '0'}`;
 
-    await client.write("/ip/hotspot/user/profile/add", [
+    await client.write('/ip/hotspot/user/profile/add', [
       `=name=${plan.name}`,
       `=shared-users=${plan.sharedUsers}`,
       `=rate-limit=${rateLimit}`,
@@ -721,17 +699,16 @@ export class MikrotikHotspot implements DeviceHandler {
   async updatePlan(oldPlan: Plan, newPlan: Plan) {
     const client = await getOrCreateClient(newPlan.routerId);
 
-    const profiles = await client.write("/ip/hotspot/user/profile/print", [
+    const profiles = await client.write('/ip/hotspot/user/profile/print', [
       `?name=${oldPlan.name}`,
-      "=.proplist=.id",
+      '=.proplist=.id',
     ]);
 
-    if (profiles.length === 0)
-      throw new Error(`Profile "${oldPlan.name}" not found`);
+    if (profiles.length === 0) throw new Error(`Profile "${oldPlan.name}" not found`);
 
-    const rateLimit = `${newPlan.rateLimitUp || "0"}/${newPlan.rateLimitDown || "0"}`;
-    await client.write("/ip/hotspot/user/profile/set", [
-      `=.id=${profiles[0][".id"]}`,
+    const rateLimit = `${newPlan.rateLimitUp || '0'}/${newPlan.rateLimitDown || '0'}`;
+    await client.write('/ip/hotspot/user/profile/set', [
+      `=.id=${profiles[0]['.id']}`,
       `=name=${newPlan.name}`,
       `=shared-users=${newPlan.sharedUsers}`,
       `=rate-limit=${rateLimit}`,
@@ -741,31 +718,29 @@ export class MikrotikHotspot implements DeviceHandler {
   async removePlan(plan: Plan) {
     const client = await getOrCreateClient(plan.routerId);
 
-    const profiles = await client.write("/ip/hotspot/user/profile/print", [
+    const profiles = await client.write('/ip/hotspot/user/profile/print', [
       `?name=${plan.name}`,
-      "=.proplist=.id",
+      '=.proplist=.id',
     ]);
 
     if (profiles.length > 0) {
-      await client.write("/ip/hotspot/user/profile/remove", [
-        `=.id=${profiles[0][".id"]}`,
-      ]);
+      await client.write('/ip/hotspot/user/profile/remove', [`=.id=${profiles[0]['.id']}`]);
     }
   }
 
   async syncCustomer(customer: Customer, plan: Plan) {
     const client = await getOrCreateClient(customer.routerId);
 
-    const users = await client.write("/ip/hotspot/user/print", [
+    const users = await client.write('/ip/hotspot/user/print', [
       `?name=${customer.username}`,
-      "=.proplist=.id,limit-uptime,limit-bytes-total",
+      '=.proplist=.id,limit-uptime,limit-bytes-total',
     ]);
 
     if (users.length === 0) {
       await this.addCustomer(customer, plan);
     } else {
-      await client.write("/ip/hotspot/user/set", [
-        `=.id=${users[0][".id"]}`,
+      await client.write('/ip/hotspot/user/set', [
+        `=.id=${users[0]['.id']}`,
         `=profile=${plan.name}`,
       ]);
     }
@@ -773,46 +748,32 @@ export class MikrotikHotspot implements DeviceHandler {
 
   async addPool(pool: Pool) {
     const client = await getOrCreateClient(pool.routerId);
-    await client.write("/ip/pool/add", [
-      `=name=${pool.name}`,
-      `=ranges=${pool.ranges}`,
-    ]);
+    await client.write('/ip/pool/add', [`=name=${pool.name}`, `=ranges=${pool.ranges}`]);
   }
 
   async updatePool(pool: Pool) {
     const client = await getOrCreateClient(pool.routerId);
-    const found = await client.write("/ip/pool/print", [
-      `?name=${pool.name}`,
-      "=.proplist=.id",
-    ]);
+    const found = await client.write('/ip/pool/print', [`?name=${pool.name}`, '=.proplist=.id']);
     if (found.length > 0) {
-      await client.write("/ip/pool/set", [
-        `=.id=${found[0][".id"]}`,
-        `=ranges=${pool.ranges}`,
-      ]);
+      await client.write('/ip/pool/set', [`=.id=${found[0]['.id']}`, `=ranges=${pool.ranges}`]);
     }
   }
 
   async removePool(pool: Pool) {
     const client = await getOrCreateClient(pool.routerId);
-    const found = await client.write("/ip/pool/print", [
-      `?name=${pool.name}`,
-      "=.proplist=.id",
-    ]);
+    const found = await client.write('/ip/pool/print', [`?name=${pool.name}`, '=.proplist=.id']);
     if (found.length > 0) {
-      await client.write("/ip/pool/remove", [`=.id=${found[0][".id"]}`]);
+      await client.write('/ip/pool/remove', [`=.id=${found[0]['.id']}`]);
     }
   }
 
   private async _disconnectActive(client: RosConnection, username: string) {
-    const active = await client.write("/ip/hotspot/active/print", [
+    const active = await client.write('/ip/hotspot/active/print', [
       `?user=${username}`,
-      "=.proplist=.id",
+      '=.proplist=.id',
     ]);
     for (const session of active) {
-      await client.write("/ip/hotspot/active/remove", [
-        `=.id=${session[".id"]}`,
-      ]);
+      await client.write('/ip/hotspot/active/remove', [`=.id=${session['.id']}`]);
     }
   }
 }
@@ -821,16 +782,16 @@ export class MikrotikHotspot implements DeviceHandler {
 ### 7.3 Device Resolver (`lib/devices/resolver.ts`)
 
 ```typescript
-import type { DeviceHandler } from "./types";
-import { MikrotikHotspot } from "./mikrotik-hotspot";
+import type { DeviceHandler } from './types';
+import { MikrotikHotspot } from './mikrotik-hotspot';
 // import { MikrotikPppoe } from './mikrotik-pppoe';
 
 export function getDeviceHandler(type: string): DeviceHandler {
   switch (type) {
-    case "hotspot":
+    case 'hotspot':
       return new MikrotikHotspot();
-    case "pppoe":
-      throw new Error("PPPoE device handler not yet implemented");
+    case 'pppoe':
+      throw new Error('PPPoE device handler not yet implemented');
     default:
       throw new Error(`Unknown device type: ${type}`);
   }
@@ -1003,19 +964,19 @@ components/
 
 ## 12. Key Design Decisions & Rationale
 
-| Decision                       | Rationale                                                                                                                                                                             |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **RouterOS API over REST**     | TLS on port 8729 works out of the box with auto-generated certs. REST API requires manual setup of `www-ssl` and endpoint configuration. Connection reuse is built into the protocol. |
-| **AES-256-GCM**                | Authenticated encryption — detects tampering, prevents chosen-ciphertext attacks. Industry standard.                                                                                  |
-| **Trust-on-first-use**         | Zero manual certificate management for end users. Practical MITM protection without requiring domain ownership or CA involvement.                                                     |
-| **Port 8729 default**          | Encrypted transport by default. Downgrade to 8728 only if user explicitly opts into insecure mode.                                                                                    |
-| **Server-side only**           | Router credentials never touch the browser. All MikroTik calls happen in API routes or server components.                                                                             |
-| **Connection pooling**         | Avoids re-logging in for every API call. The RouterOS API login handshake is cheap but unnecessary to repeat.                                                                         |
-| **Device plugin pattern**      | Same architecture as PHPNuxBill — makes adding new router types (PPPoE, RADIUS, future protocols) a single class implementation.                                                      |
-| **Drizzle over Prisma**        | Lightweight, SQL-like API, no code generation step. Relations are explicit functions, not magic. Better fits the PostgreSQL-first approach.                                            |
-| **BetterAuth over NextAuth**   | Framework-agnostic, first-class TypeScript support, built-in email/password provider, simpler session management. No adapter complexity.                                              |
-| **daisyUI over shadcn/ui**     | Class-based component library — no component files to maintain, works directly with Tailwind 4, dark theme by default. Faster to iterate.                                             |
-| **PostgreSQL over MySQL**      | Better enum support, superior JSON handling, stronger concurrency, and the project standard.                                                                                          |
+| Decision                     | Rationale                                                                                                                                                                             |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RouterOS API over REST**   | TLS on port 8729 works out of the box with auto-generated certs. REST API requires manual setup of `www-ssl` and endpoint configuration. Connection reuse is built into the protocol. |
+| **AES-256-GCM**              | Authenticated encryption — detects tampering, prevents chosen-ciphertext attacks. Industry standard.                                                                                  |
+| **Trust-on-first-use**       | Zero manual certificate management for end users. Practical MITM protection without requiring domain ownership or CA involvement.                                                     |
+| **Port 8729 default**        | Encrypted transport by default. Downgrade to 8728 only if user explicitly opts into insecure mode.                                                                                    |
+| **Server-side only**         | Router credentials never touch the browser. All MikroTik calls happen in API routes or server components.                                                                             |
+| **Connection pooling**       | Avoids re-logging in for every API call. The RouterOS API login handshake is cheap but unnecessary to repeat.                                                                         |
+| **Device plugin pattern**    | Same architecture as PHPNuxBill — makes adding new router types (PPPoE, RADIUS, future protocols) a single class implementation.                                                      |
+| **Drizzle over Prisma**      | Lightweight, SQL-like API, no code generation step. Relations are explicit functions, not magic. Better fits the PostgreSQL-first approach.                                           |
+| **BetterAuth over NextAuth** | Framework-agnostic, first-class TypeScript support, built-in email/password provider, simpler session management. No adapter complexity.                                              |
+| **daisyUI over shadcn/ui**   | Class-based component library — no component files to maintain, works directly with Tailwind 4, dark theme by default. Faster to iterate.                                             |
+| **PostgreSQL over MySQL**    | Better enum support, superior JSON handling, stronger concurrency, and the project standard.                                                                                          |
 
 ---
 

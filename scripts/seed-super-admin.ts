@@ -1,19 +1,19 @@
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { eq } from "drizzle-orm";
-import { hashPassword } from "better-auth/crypto";
-import * as schema from "../db/schema";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { eq } from 'drizzle-orm';
+import { hashPassword } from 'better-auth/crypto';
+import * as schema from '../db/schema';
 
 const SUPER_ADMIN = {
-  email: process.env.SUPERADMIN_DEFAULT_EMAIL || "test@example.com",
-  password: process.env.SUPERADMIN_DEFAULT_PASSWORD || "12345678",
-  name: "Super Admin",
+  email: process.env.SUPERADMIN_DEFAULT_EMAIL || 'test@example.com',
+  password: process.env.SUPERADMIN_DEFAULT_PASSWORD || '12345678',
+  name: 'Super Admin',
 };
 
 async function seed() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    console.error("DATABASE_URL is not set");
+    console.error('DATABASE_URL is not set');
     process.exit(1);
   }
 
@@ -28,11 +28,9 @@ async function seed() {
   if (existingUser) {
     await db
       .update(schema.user)
-      .set({ role: "super_admin" })
+      .set({ role: 'super_admin' })
       .where(eq(schema.user.id, existingUser.id));
-    console.log(
-      `User already exists — role set to super_admin (id: ${existingUser.id})`,
-    );
+    console.log(`User already exists — role set to super_admin (id: ${existingUser.id})`);
   } else {
     const id = crypto.randomUUID();
     const now = new Date();
@@ -42,7 +40,7 @@ async function seed() {
       id,
       email: SUPER_ADMIN.email,
       name: SUPER_ADMIN.name,
-      role: "super_admin",
+      role: 'super_admin',
       emailVerified: false,
       createdAt: now,
       updatedAt: now,
@@ -52,7 +50,7 @@ async function seed() {
       id: crypto.randomUUID(),
       userId: id,
       accountId: id,
-      providerId: "credential",
+      providerId: 'credential',
       password: hashedPassword,
       createdAt: now,
       updatedAt: now,
@@ -65,6 +63,6 @@ async function seed() {
 }
 
 seed().catch((err) => {
-  console.error("Seed failed:", err);
+  console.error('Seed failed:', err);
   process.exit(1);
 });

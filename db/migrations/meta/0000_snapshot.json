@@ -95,12 +95,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -253,12 +249,8 @@
           "name": "customer_router_id_router_id_fk",
           "tableFrom": "customer",
           "tableTo": "router",
-          "columnsFrom": [
-            "router_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["router_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -266,12 +258,8 @@
           "name": "customer_plan_id_plan_id_fk",
           "tableFrom": "customer",
           "tableTo": "plan",
-          "columnsFrom": [
-            "plan_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["plan_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -279,12 +267,8 @@
           "name": "customer_created_by_user_id_fk",
           "tableFrom": "customer",
           "tableTo": "user",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -292,12 +276,8 @@
           "name": "customer_updated_by_user_id_fk",
           "tableFrom": "customer",
           "tableTo": "user",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -434,12 +414,8 @@
           "name": "plan_router_id_router_id_fk",
           "tableFrom": "plan",
           "tableTo": "router",
-          "columnsFrom": [
-            "router_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["router_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -447,12 +423,8 @@
           "name": "plan_pool_id_pool_id_fk",
           "tableFrom": "plan",
           "tableTo": "pool",
-          "columnsFrom": [
-            "pool_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pool_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -460,12 +432,8 @@
           "name": "plan_created_by_user_id_fk",
           "tableFrom": "plan",
           "tableTo": "user",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -473,12 +441,8 @@
           "name": "plan_updated_by_user_id_fk",
           "tableFrom": "plan",
           "tableTo": "user",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -550,12 +514,8 @@
           "name": "pool_router_id_router_id_fk",
           "tableFrom": "pool",
           "tableTo": "router",
-          "columnsFrom": [
-            "router_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["router_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -563,12 +523,8 @@
           "name": "pool_created_by_user_id_fk",
           "tableFrom": "pool",
           "tableTo": "user",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -576,12 +532,8 @@
           "name": "pool_updated_by_user_id_fk",
           "tableFrom": "pool",
           "tableTo": "user",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -740,12 +692,8 @@
           "name": "router_user_id_user_id_fk",
           "tableFrom": "router",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -753,12 +701,8 @@
           "name": "router_created_by_user_id_fk",
           "tableFrom": "router",
           "tableTo": "user",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -766,12 +710,8 @@
           "name": "router_updated_by_user_id_fk",
           "tableFrom": "router",
           "tableTo": "user",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -781,9 +721,7 @@
         "router_name_unique": {
           "name": "router_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -851,12 +789,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -866,9 +800,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -948,12 +880,8 @@
           "name": "transaction_customer_id_customer_id_fk",
           "tableFrom": "transaction",
           "tableTo": "customer",
-          "columnsFrom": [
-            "customer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["customer_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -961,12 +889,8 @@
           "name": "transaction_plan_id_plan_id_fk",
           "tableFrom": "transaction",
           "tableTo": "plan",
-          "columnsFrom": [
-            "plan_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["plan_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -974,12 +898,8 @@
           "name": "transaction_router_id_router_id_fk",
           "tableFrom": "transaction",
           "tableTo": "router",
-          "columnsFrom": [
-            "router_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["router_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -987,12 +907,8 @@
           "name": "transaction_created_by_user_id_fk",
           "tableFrom": "transaction",
           "tableTo": "user",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1000,12 +916,8 @@
           "name": "transaction_updated_by_user_id_fk",
           "tableFrom": "transaction",
           "tableTo": "user",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1087,9 +999,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1163,12 +1073,8 @@
           "name": "user_recharge_customer_id_customer_id_fk",
           "tableFrom": "user_recharge",
           "tableTo": "customer",
-          "columnsFrom": [
-            "customer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["customer_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1176,12 +1082,8 @@
           "name": "user_recharge_plan_id_plan_id_fk",
           "tableFrom": "user_recharge",
           "tableTo": "plan",
-          "columnsFrom": [
-            "plan_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["plan_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1189,12 +1091,8 @@
           "name": "user_recharge_router_id_router_id_fk",
           "tableFrom": "user_recharge",
           "tableTo": "router",
-          "columnsFrom": [
-            "router_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["router_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1202,12 +1100,8 @@
           "name": "user_recharge_created_by_user_id_fk",
           "tableFrom": "user_recharge",
           "tableTo": "user",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1215,12 +1109,8 @@
           "name": "user_recharge_updated_by_user_id_fk",
           "tableFrom": "user_recharge",
           "tableTo": "user",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1355,12 +1245,8 @@
           "name": "voucher_plan_id_plan_id_fk",
           "tableFrom": "voucher",
           "tableTo": "plan",
-          "columnsFrom": [
-            "plan_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["plan_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1368,12 +1254,8 @@
           "name": "voucher_router_id_router_id_fk",
           "tableFrom": "voucher",
           "tableTo": "router",
-          "columnsFrom": [
-            "router_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["router_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1381,12 +1263,8 @@
           "name": "voucher_created_by_user_id_fk",
           "tableFrom": "voucher",
           "tableTo": "user",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1394,12 +1272,8 @@
           "name": "voucher_updated_by_user_id_fk",
           "tableFrom": "voucher",
           "tableTo": "user",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1409,9 +1283,7 @@
         "voucher_code_unique": {
           "name": "voucher_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -1423,45 +1295,27 @@
     "public.customer_status": {
       "name": "customer_status",
       "schema": "public",
-      "values": [
-        "active",
-        "expired",
-        "disabled"
-      ]
+      "values": ["active", "expired", "disabled"]
     },
     "public.plan_type": {
       "name": "plan_type",
       "schema": "public",
-      "values": [
-        "hotspot",
-        "pppoe"
-      ]
+      "values": ["hotspot", "pppoe"]
     },
     "public.role": {
       "name": "role",
       "schema": "public",
-      "values": [
-        "super_admin",
-        "admin"
-      ]
+      "values": ["super_admin", "admin"]
     },
     "public.router_status": {
       "name": "router_status",
       "schema": "public",
-      "values": [
-        "online",
-        "offline",
-        "unknown"
-      ]
+      "values": ["online", "offline", "unknown"]
     },
     "public.transaction_type": {
       "name": "transaction_type",
       "schema": "public",
-      "values": [
-        "recharge",
-        "voucher",
-        "refund"
-      ]
+      "values": ["recharge", "voucher", "refund"]
     }
   },
   "schemas": {},

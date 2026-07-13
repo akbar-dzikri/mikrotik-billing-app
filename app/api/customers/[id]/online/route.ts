@@ -1,15 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { getSession, routerOwnerWhere } from "@/lib/auth-helpers";
-import { db } from "@/lib/db";
-import { customers, plans, routers } from "@/db/schema/tables";
-import { getDeviceHandler } from "@/lib/devices/resolver";
+import { NextRequest, NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
+import { getSession, routerOwnerWhere } from '@/lib/auth-helpers';
+import { db } from '@/lib/db';
+import { customers, plans, routers } from '@/db/schema/tables';
+import { getDeviceHandler } from '@/lib/devices/resolver';
 
 // ── GET /api/customers/[id]/online — check online status ──────────
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession(request);
 
@@ -30,45 +27,31 @@ export async function GET(
     const customer = row;
 
     if (!customer) {
-      return NextResponse.json(
-        { status: "error", message: "Customer not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ status: 'error', message: 'Customer not found' }, { status: 404 });
     }
 
     // Fetch plan for device handler
-    const [plan] = await db
-      .select()
-      .from(plans)
-      .where(eq(plans.id, customer.planId!))
-      .limit(1);
+    const [plan] = await db.select().from(plans).where(eq(plans.id, customer.planId!)).limit(1);
 
     if (!plan) {
       return NextResponse.json(
-        { status: "error", message: "Plan not found for customer" },
+        { status: 'error', message: 'Plan not found for customer' },
         { status: 404 },
       );
     }
 
     const handler = getDeviceHandler(plan.type);
-    const onlineStatus = await handler.onlineCustomer(
-      customer.username,
-      customer.routerId,
-    );
+    const onlineStatus = await handler.onlineCustomer(customer.username, customer.routerId);
 
     return NextResponse.json({
-      status: "success",
+      status: 'success',
       data: {
         online: onlineStatus !== null,
         session: onlineStatus,
       },
     });
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { status: "error", message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ status: 'error', message }, { status: 500 });
   }
 }

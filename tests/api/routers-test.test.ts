@@ -1,16 +1,41 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { mockGetSession, mockRouterOwnerWhere } = vi.hoisted(() => ({
-  mockGetSession: vi.fn(), mockRouterOwnerWhere: vi.fn(),
+  mockGetSession: vi.fn(),
+  mockRouterOwnerWhere: vi.fn(),
 }));
 
 const { mockDb } = vi.hoisted(() => {
-  const dq: any = { from: vi.fn().mockReturnThis(), leftJoin: vi.fn().mockReturnThis(), where: vi.fn().mockReturnThis(), orderBy: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), offset: vi.fn().mockReturnThis(), values: vi.fn().mockReturnThis(), set: vi.fn().mockReturnThis(), then(r: any) { r([]); }, catch() {}, finally() {} };
-  return { mockDb: { select: vi.fn(() => dq), insert: vi.fn(() => dq), update: vi.fn(() => dq), delete: vi.fn(() => dq) } };
+  const dq: any = {
+    from: vi.fn().mockReturnThis(),
+    leftJoin: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    offset: vi.fn().mockReturnThis(),
+    values: vi.fn().mockReturnThis(),
+    set: vi.fn().mockReturnThis(),
+    then(r: any) {
+      r([]);
+    },
+    catch() {},
+    finally() {},
+  };
+  return {
+    mockDb: {
+      select: vi.fn(() => dq),
+      insert: vi.fn(() => dq),
+      update: vi.fn(() => dq),
+      delete: vi.fn(() => dq),
+    },
+  };
 });
 
 vi.mock('@/lib/db', () => ({ db: mockDb }));
-vi.mock('@/lib/auth-helpers', () => ({ getSession: mockGetSession, routerOwnerWhere: mockRouterOwnerWhere }));
+vi.mock('@/lib/auth-helpers', () => ({
+  getSession: mockGetSession,
+  routerOwnerWhere: mockRouterOwnerWhere,
+}));
 
 const { mockGetRouterClient } = vi.hoisted(() => ({ mockGetRouterClient: vi.fn() }));
 vi.mock('@/lib/mikrotik-client', () => ({ getRouterClient: mockGetRouterClient }));
@@ -23,10 +48,16 @@ const params = Promise.resolve({ id: 'router-1' });
 
 describe('POST /api/routers/[id]/test', () => {
   const session = buildSession();
-  beforeEach(() => { vi.clearAllMocks(); mockGetSession.mockResolvedValue(session); mockRouterOwnerWhere.mockImplementation((_s: any, c: any) => c); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSession.mockResolvedValue(session);
+    mockRouterOwnerWhere.mockImplementation((_s: any, c: any) => c);
+  });
 
   it('tests connection successfully', async () => {
-    mockDb.select.mockReturnValue(createMockQuery([buildRouter({ id: 'router-1', host: '192.168.88.1' })]));
+    mockDb.select.mockReturnValue(
+      createMockQuery([buildRouter({ id: 'router-1', host: '192.168.88.1' })]),
+    );
     const client = { write: vi.fn().mockResolvedValue([]), close: vi.fn() };
     mockGetRouterClient.mockResolvedValue(client);
     const res = await POST(buildRequest('POST', '/api/routers/router-1/test'), { params });
