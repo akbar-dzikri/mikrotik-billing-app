@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { signIn } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import { signIn } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.SubmitEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -22,21 +22,19 @@ export default function LoginPage() {
     });
 
     if (signInError) {
-      setError(signInError.message || "Invalid credentials");
+      setError(signInError.message || 'Invalid credentials');
       setLoading(false);
       return;
     }
 
-    router.push("/");
+    router.push('/');
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)]">
       <div className="card w-full max-w-md bg-[var(--surface)] shadow-xl">
         <div className="card-body gap-6 p-8">
-          <h1 className="card-title text-2xl font-bold text-[var(--fg)] justify-center">
-            Sign In
-          </h1>
+          <h1 className="card-title justify-center text-2xl font-bold text-[var(--fg)]">Sign In</h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <label className="flex flex-col gap-1">
@@ -63,20 +61,10 @@ export default function LoginPage() {
               />
             </label>
 
-            {error && (
-              <div className="alert alert-error text-sm">{error}</div>
-            )}
+            {error && <div className="alert alert-error text-sm">{error}</div>}
 
-            <button
-              type="submit"
-              className="btn btn-primary w-full"
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="loading loading-spinner" />
-              ) : (
-                "Sign In"
-              )}
+            <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+              {loading ? <span className="loading loading-spinner" /> : 'Sign In'}
             </button>
           </form>
         </div>
