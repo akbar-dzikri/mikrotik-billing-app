@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from '@/lib/auth-client';
-import { ArrowUpRight, Ticket } from 'lucide-react';
+import { Wallet, Ticket, Activity, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { SalesChart } from '@/components/dashboard/SalesChart';
 import { RouterHealth } from '@/components/dashboard/RouterHealth';
 import { TransactionsTable } from '@/components/dashboard/TransactionsTable';
-import { ActiveVouchers } from '@/components/dashboard/ActiveVouchers';
 
 interface DashboardData {
   stats: {
@@ -17,7 +16,6 @@ interface DashboardData {
     delta: string;
     tone: 'primary' | 'accent' | 'warning';
   }[];
-  salesData: number[];
   transactions: {
     code: string;
     pkg: string;
@@ -26,11 +24,6 @@ interface DashboardData {
     user: string;
     status: string;
     time: string;
-  }[];
-  activeVouchers: {
-    code: string;
-    pkg: string;
-    left: string;
   }[];
 }
 
@@ -41,14 +34,14 @@ const defaultRouters = [
   { name: 'rt-bekasi-01', load: 12, users: 9, status: 'warning' as const },
 ];
 
+const mockSalesData = Array.from({ length: 24 }, () => Math.floor(Math.random() * 60) + 10);
+
 const mockStats = [
   { label: 'Pendapatan Hari Ini', value: 'Rp 0', delta: '0 transaksi', tone: 'primary' as const },
   { label: 'Voucher Terjual', value: '0', delta: 'hari ini', tone: 'primary' as const },
   { label: 'User Online', value: '0', delta: 'live', tone: 'accent' as const },
   { label: 'Router Aktif', value: '0/0', delta: 'online', tone: 'warning' as const },
 ];
-
-const mockSalesData = Array.from({ length: 24 }, () => Math.floor(Math.random() * 60) + 10);
 
 export default function DashboardHome() {
   const { data: session } = useSession();
@@ -66,9 +59,8 @@ export default function DashboardHome() {
   }, []);
 
   const stats = data?.stats || mockStats;
-  const salesData = data?.salesData || mockSalesData;
+  const salesData = mockSalesData;
   const transactions = data?.transactions || [];
-  const activeVouchers = data?.activeVouchers || [];
 
   return (
     <div className="space-y-6">
@@ -88,10 +80,10 @@ export default function DashboardHome() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
-            <Ticket className="h-4 w-4" /> Generate Voucher
+            <Wallet className="h-4 w-4" /> Generate Voucher
           </Button>
           <Button size="sm" variant="hero">
-            <ArrowUpRight className="h-4 w-4" /> Buka Storefront
+            <Activity className="h-4 w-4" /> Buka Storefront
           </Button>
         </div>
       </div>
@@ -105,7 +97,6 @@ export default function DashboardHome() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         <TransactionsTable transactions={transactions} />
-        <ActiveVouchers vouchers={activeVouchers} />
       </div>
     </div>
   );
