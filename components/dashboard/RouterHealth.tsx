@@ -4,7 +4,7 @@ interface RouterInfo {
   name: string;
   load: number;
   users: number;
-  status: 'online' | 'warning' | 'offline';
+  status: string;
 }
 
 interface RouterHealthProps {

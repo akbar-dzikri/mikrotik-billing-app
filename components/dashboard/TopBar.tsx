@@ -24,12 +24,9 @@ export function TopBar({ userName, userEmail }: TopBarProps) {
       <div className="relative w-full max-w-sm">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
-          placeholder="Cari voucher, invoice, atau pelanggan…"
+          placeholder="Cari..."
           className="h-9 w-full rounded-md border border-border bg-card/50 pl-9 pr-16 text-sm placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
         />
-        <kbd className="absolute right-2 top-1/2 -translate-y-1/2 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-          ⌘K
-        </kbd>
       </div>
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="relative">
@@ -45,7 +42,7 @@ export function TopBar({ userName, userEmail }: TopBarProps) {
               {userName || 'Admin'}
             </div>
             <div className="font-mono text-[10px] text-muted-foreground">
-              workspace · {workspaceName}
+              {userEmail}
             </div>
           </div>
         </div>

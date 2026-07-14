@@ -219,3 +219,119 @@ export const transactions = pgTable('transaction', {
   updatedBy: text('updated_by').references(() => user.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ── Storefront ────────────────────────────────────────────────────
+export const tenants = pgTable('tenant', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
+  slug: text('slug').notNull().unique(),
+  name: text('name').notNull(),
+  tagline: text('tagline'),
+  brandColor: text('brand_color'),
+  waSupport: text('wa_support'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});
+
+export const storePackages = pgTable('store_package', {
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id')
+    .notNull()
+    .references(() => tenants.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  planId: text('plan_id').references(() => plans.id),
+  priceIdr: integer('price_idr').notNull(),
+  durationLabel: text('duration_label').notNull(),
+  hotspotProfile: text('hotspot_profile'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const orders = pgTable('order', {
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  packageId: text('package_id')
+    .notNull()
+    .references(() => storePackages.id),
+  customerName: text('customer_name').notNull(),
+  waNumber: text('wa_number').notNull(),
+  amountIdr: integer('amount_idr').notNull(),
+  status: text('status').notNull().default('pending'),
+  paymentRef: text('payment_ref'),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  fulfilledAt: timestamp('fulfilled_at', { withTimezone: true }),
+  mikrotikSyncedAt: timestamp('mikrotik_synced_at', { withTimezone: true }),
+  mikrotikError: text('mikrotik_error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const storeVouchers = pgTable('store_voucher', {
+  id: text('id').primaryKey(),
+  orderId: text('order_id')
+    .notNull()
+    .references(() => orders.id),
+  tenantId: text('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  username: text('username').notNull(),
+  password: text('password').notNull(),
+  hotspotProfile: text('hotspot_profile'),
+  mikrotikSyncedAt: timestamp('mikrotik_synced_at', { withTimezone: true }),
+  mikrotikError: text('mikrotik_error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const deliveryLogs = pgTable('delivery_log', {
+  id: text('id').primaryKey(),
+  orderId: text('order_id')
+    .notNull()
+    .references(() => orders.id),
+  tenantId: text('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  provider: text('provider').notNull(),
+  status: text('status').notNull(),
+  response: text('response'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const mikrotikConfigs = pgTable('mikrotik_config', {
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id')
+    .notNull()
+    .unique()
+    .references(() => tenants.id),
+  host: text('host').notNull(),
+  port: integer('port').notNull().default(8729),
+  useHttps: boolean('use_https').notNull().default(true),
+  username: text('username').notNull(),
+  passwordEnc: text('password_enc').notNull(),
+  defaultProfile: text('default_profile'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});
+
+export const waConfigs = pgTable('wa_config', {
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id')
+    .notNull()
+    .unique()
+    .references(() => tenants.id),
+  cloudPhoneId: text('cloud_phone_id'),
+  cloudTokenEnc: text('cloud_token_enc'),
+  cloudTemplateName: text('cloud_template_name'),
+  fonnteTokenEnc: text('fonnte_token_enc'),
+  wablasTokenEnc: text('wablas_token_enc'),
+  wablasDomain: text('wablas_domain'),
+  providerOrder: text('provider_order').array(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});

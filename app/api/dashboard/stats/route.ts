@@ -4,9 +4,9 @@ import { db } from '@/lib/db';
 import { orders, storeVouchers, customers, routers } from '@/db/schema';
 import { eq, sql, and, gte } from 'drizzle-orm';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await getSession();
+    const session = await getSession(request);
     if (!session) return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 401 });
 
     const today = new Date();
@@ -73,7 +73,7 @@ export async function GET() {
           pay: 'QRIS',
           user: o.waNumber.slice(0, 12) + 'xx',
           status: o.status === 'fulfilled' ? 'sukses' : o.status === 'paid' ? 'pending' : o.status,
-          time: formatTime(o.createdAt),
+          time: formatTime(o.createdAt || new Date()),
         })),
       },
     });

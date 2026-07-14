@@ -1,18 +1,13 @@
 'use client';
 
-import { Wallet, Ticket, Activity, Wifi } from 'lucide-react';
-
-const iconMap: Record<string, typeof Wallet> = {
-  primary: Wallet,
-  accent: Activity,
-  warning: Wifi,
-};
+import type { LucideIcon } from 'lucide-react';
 
 interface Stat {
   label: string;
   value: string;
   delta: string;
-  tone?: 'primary' | 'accent' | 'warning';
+  tone: string;
+  icon: LucideIcon;
 }
 
 interface StatsGridProps {
@@ -20,13 +15,10 @@ interface StatsGridProps {
 }
 
 export function StatsGrid({ stats }: StatsGridProps) {
-  const icons = [Wallet, Ticket, Activity, Wifi];
-
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {stats.map((s, i) => {
-        const Icon = icons[i] || Wallet;
-        const tone = s.tone || 'primary';
+      {stats.map((s) => {
+        const Icon = s.icon;
         return (
           <div
             key={s.label}
@@ -38,9 +30,9 @@ export function StatsGrid({ stats }: StatsGridProps) {
               </div>
               <span
                 className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${
-                  tone === 'warning'
+                  s.tone === 'warning'
                     ? 'bg-warning/15 text-warning'
-                    : tone === 'accent'
+                    : s.tone === 'accent'
                       ? 'bg-accent/15 text-accent'
                       : 'bg-primary/15 text-primary'
                 }`}

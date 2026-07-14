@@ -25,10 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar
-        user={session.user ? { name: session.user.name, email: session.user.email } : null}
-        currentPath={pathname}
-      />
+      <Sidebar currentPath={pathname} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar
           userName={session.user?.name || 'Admin'}

@@ -1,20 +1,28 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const inter = Inter({
   subsets: ['latin'],
+  variable: '--font-sans',
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
+  variable: '--font-mono',
 });
 
 export const metadata: Metadata = {
-  title: 'Billing App',
-  description: 'MikroTik Billing Dashboard',
+  title: 'ARNET BILLING — Billing System Hotspot Mikrotik & Voucher Online',
+  description:
+    'Sistem billing hotspot untuk RT/RW Net & reseller. Integrasi Mikrotik REST API, Midtrans, QRIS, WhatsApp Cloud API. Voucher otomatis, laporan realtime.',
+  authors: [{ name: 'ARNET BILLING' }],
+  openGraph: {
+    title: 'ARNET BILLING — Billing System Hotspot Mikrotik',
+    description:
+      'Kelola voucher hotspot, pembayaran online, dan router Mikrotik dari satu dashboard. Otomatis, terintegrasi, siap pakai.',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
@@ -25,10 +33,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="dark"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-dvh flex-col antialiased">{children}</body>
     </html>
   );
 }

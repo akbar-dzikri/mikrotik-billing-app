@@ -8,6 +8,20 @@
       "when": 1783646884916,
       "tag": "0000_workable_smasher",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784015521029,
+      "tag": "0001_greedy_morlocks",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784021990541,
+      "tag": "0002_workable_vulture",
+      "breakpoints": true
     }
   ]
 }

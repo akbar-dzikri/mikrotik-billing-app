@@ -1,0 +1,2 @@
+ALTER TABLE "mikrotik_config" ADD CONSTRAINT "mikrotik_config_tenant_id_unique" UNIQUE("tenant_id");--> statement-breakpoint
+ALTER TABLE "wa_config" ADD CONSTRAINT "wa_config_tenant_id_unique" UNIQUE("tenant_id");

@@ -11,12 +11,20 @@ import {
   userRecharges,
   vouchers,
   transactions,
+  tenants,
+  storePackages,
+  orders,
+  storeVouchers,
+  deliveryLogs,
+  mikrotikConfigs,
+  waConfigs,
 } from './tables';
 
 // ── BetterAuth relations ──────────────────────────────────────────
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  tenants: many(tenants),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -77,4 +85,61 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   }),
   plan: one(plans, { fields: [transactions.planId], references: [plans.id] }),
   router: one(routers, { fields: [transactions.routerId], references: [routers.id] }),
+}));
+
+// ── Storefront relations ──────────────────────────────────────────
+export const tenantsRelations = relations(tenants, ({ one, many }) => ({
+  user: one(user, { fields: [tenants.userId], references: [user.id] }),
+  storePackages: many(storePackages),
+  orders: many(orders),
+  storeVouchers: many(storeVouchers),
+  deliveryLogs: many(deliveryLogs),
+  mikrotikConfigs: one(mikrotikConfigs),
+  waConfigs: one(waConfigs),
+}));
+
+export const storePackagesRelations = relations(storePackages, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [storePackages.tenantId],
+    references: [tenants.id],
+  }),
+  plan: one(plans, { fields: [storePackages.planId], references: [plans.id] }),
+  orders: many(orders),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [orders.tenantId], references: [tenants.id] }),
+  package: one(storePackages, {
+    fields: [orders.packageId],
+    references: [storePackages.id],
+  }),
+  storeVouchers: many(storeVouchers),
+  deliveryLogs: many(deliveryLogs),
+}));
+
+export const storeVouchersRelations = relations(storeVouchers, ({ one }) => ({
+  order: one(orders, { fields: [storeVouchers.orderId], references: [orders.id] }),
+  tenant: one(tenants, {
+    fields: [storeVouchers.tenantId],
+    references: [tenants.id],
+  }),
+}));
+
+export const deliveryLogsRelations = relations(deliveryLogs, ({ one }) => ({
+  order: one(orders, { fields: [deliveryLogs.orderId], references: [orders.id] }),
+  tenant: one(tenants, {
+    fields: [deliveryLogs.tenantId],
+    references: [tenants.id],
+  }),
+}));
+
+export const mikrotikConfigsRelations = relations(mikrotikConfigs, ({ one }) => ({
+  tenant: one(tenants, {
+    fields: [mikrotikConfigs.tenantId],
+    references: [tenants.id],
+  }),
+}));
+
+export const waConfigsRelations = relations(waConfigs, ({ one }) => ({
+  tenant: one(tenants, { fields: [waConfigs.tenantId], references: [tenants.id] }),
 }));

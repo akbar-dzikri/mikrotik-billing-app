@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from '@/lib/auth-client';
-import { Wallet, Ticket, Activity, Wifi } from 'lucide-react';
+import { Wallet, Ticket, Activity, Wifi, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { SalesChart } from '@/components/dashboard/SalesChart';
@@ -26,6 +26,13 @@ interface DashboardData {
     time: string;
   }[];
 }
+
+const iconMap: Record<string, LucideIcon> = {
+  'Pendapatan Hari Ini': Wallet,
+  'Voucher Terjual': Ticket,
+  'User Online': Activity,
+  'Router Aktif': Wifi,
+};
 
 const defaultRouters = [
   { name: 'rt-jaksel-01', load: 72, users: 48, status: 'online' as const },
@@ -88,7 +95,12 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      <StatsGrid stats={stats} />
+      <StatsGrid
+        stats={stats.map((s) => ({
+          ...s,
+          icon: iconMap[s.label] || Wallet,
+        }))}
+      />
 
       <div className="grid gap-6 xl:grid-cols-3">
         <SalesChart data={salesData} />
