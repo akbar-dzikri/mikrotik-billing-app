@@ -5,7 +5,7 @@ import { generateUsername, generateVoucherCode } from './crypto';
 import { sendWhatsApp, buildVoucherMessage } from './wa';
 import { getMikrotikConfig, getWaConfig } from './queries';
 import type { WaConfig } from './wa';
-import { getOrCreateClient } from '@/lib/mikrotik-client';
+import { getDeviceHandler } from '@/lib/devices/resolver';
 import { decryptSecret } from './crypto';
 import { randomUUID } from 'node:crypto';
 
@@ -68,13 +68,20 @@ export async function simulatePayment(orderId: string) {
   try {
     const plan = order.package.plan;
     if (plan && plan.routerId) {
-      const routerClient = await getOrCreateClient(plan.routerId);
-      await routerClient.write('/ip/hotspot/user/add', [
-        `=name=${username}`,
-        `=password=${password}`,
-        `=profile=${plan.name}`,
-        `=comment=order:${order.id}`,
-      ]);
+      const handler = getDeviceHandler(plan.type);
+      await handler.addCustomer(
+        {
+          id: order.id,
+          routerId: plan.routerId,
+          username,
+          password,
+          planId: plan.id,
+          status: 'active',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as any,
+        plan as any,
+      );
       mikrotikSynced = new Date();
     } else {
       const mtCfg = await getMikrotikConfig(order.tenantId);

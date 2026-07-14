@@ -221,6 +221,19 @@ export const transactions = pgTable('transaction', {
 });
 
 // ── Storefront ────────────────────────────────────────────────────
+// These tables support the public customer-facing storefront (beli/:slug, voucher/:token).
+// They are SEPARATE from the admin tables above — same DB, different concerns.
+//
+//   Admin tables (above)          |  Storefront tables (below)
+//   ──────────────────────────────|────────────────────────────────
+//   routers (API-SSL, per-admin)  |  mikrotik_configs (REST, per-tenant)
+//   plans (rate limits, pools)    |  store_packages (simple SKUs, links to plan)
+//   customers (full CRM)          |  orders (customer_name, wa_number inline)
+//   vouchers (pre-generated)      |  store_vouchers (per-order, generated on payment)
+//   user_recharge                 |  orders (fulfillment flow)
+//
+// store_packages optionally link to plans via planId — a storefront SKU
+// can map to an admin plan to reuse hotspot profiles on the router.
 export const tenants = pgTable('tenant', {
   id: text('id').primaryKey(),
   userId: text('user_id')
@@ -302,6 +315,8 @@ export const deliveryLogs = pgTable('delivery_log', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
+// Per-tenant storefront router configs (REST-based, encrypted with STOREFRONT_ENCRYPTION_KEY).
+// Separate from admin 'routers' table (API-SSL, encrypted with ROUTER_ENCRYPTION_KEY).
 export const mikrotikConfigs = pgTable('mikrotik_config', {
   id: text('id').primaryKey(),
   tenantId: text('tenant_id')

@@ -1,5 +1,20 @@
 import { createCipheriv, createDecipheriv, randomBytes, createHash } from "node:crypto";
 
+/**
+ * Storefront crypto — intentionally SEPARATE from lib/crypto.ts.
+ *
+ *   lib/crypto.ts                            lib/storefront/crypto.ts
+ *   ─────────────────────────────             ──────────────────────────────────
+ *   ROUTER_ENCRYPTION_KEY                    STOREFRONT_ENCRYPTION_KEY
+ *   Key: hex decode                          Key: SHA-256 hash of raw string
+ *   IV: 16 bytes                             IV: 12 bytes
+ *   Output: separate hex fields              Output: base64 joined with ":"
+ *   Purpose: MikroTik API-SSL creds          Purpose: WA tokens, MT config passwords
+ *
+ * Different env var + different key derivation + different output format =
+ * no accidental cross-contamination between credential domains.
+ */
+
 function getKey(): Buffer {
   const raw = process.env.STOREFRONT_ENCRYPTION_KEY;
   if (!raw) throw new Error("STOREFRONT_ENCRYPTION_KEY is not set");
