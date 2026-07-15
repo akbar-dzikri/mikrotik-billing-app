@@ -10,9 +10,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "seed": "tsx --env-file=.env scripts/seed-super-admin.ts",
+    "seed:e2e": "tsx --env-file=.env scripts/seed-e2e.ts",
     "test": "vitest tests/**/*.test.ts",
     "test:run": "vitest run tests/**/*.test.ts",
-    "test:ui": "NODE_ENV=test vitest run tests/ui"
+    "test:ui": "NODE_ENV=test vitest run tests/ui",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -70,6 +72,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
