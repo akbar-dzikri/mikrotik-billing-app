@@ -5,7 +5,13 @@ export default defineConfig({
   test: {
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/coverage/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.git/**',
+      '**/coverage/**',
+      '**/.worktrees/**',
+    ],
   },
   resolve: {
     alias: {
