@@ -43,3 +43,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .aider*
+
+# Playwright E2E artifacts
+playwright-report/
+test-results/

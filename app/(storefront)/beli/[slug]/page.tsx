@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Wifi, ShieldCheck, MessageCircle } from "lucide-react";
@@ -13,9 +13,9 @@ import type { StorePackage, StoreTenant } from "@/lib/storefront/types";
 export default function StorefrontPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  const { slug } = use(params);
   const router = useRouter();
   const [tenant, setTenant] = useState<StoreTenant | null>(null);
   const [packages, setPackages] = useState<StorePackage[]>([]);

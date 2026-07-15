@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import QRCode from "qrcode";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -17,9 +17,9 @@ import type { StoreTenant } from "@/lib/storefront/types";
 export default function SuccessPage({
   params,
 }: {
-  params: { token: string; orderId: string };
+  params: Promise<{ token: string; orderId: string }>;
 }) {
-  const { token, orderId } = params;
+  const { token, orderId } = use(params);
   const [order, setOrder] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);

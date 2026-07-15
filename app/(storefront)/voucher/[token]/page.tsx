@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import {
   Wifi,
@@ -17,9 +17,9 @@ import type { StorePackage, StoreTenant } from "@/lib/storefront/types";
 export default function VoucherTokenPage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
-  const { token } = params;
+  const { token } = use(params);
   const [tenant, setTenant] = useState<StoreTenant | null>(null);
   const [packages, setPackages] = useState<StorePackage[]>([]);
   const [enabled, setEnabled] = useState(true);
