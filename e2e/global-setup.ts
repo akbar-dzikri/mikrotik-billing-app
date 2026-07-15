@@ -1,4 +1,8 @@
 import { spawn } from 'node:child_process';
+import dotenv from 'dotenv';
+import path from 'node:path';
+
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 async function run(command: string, args: string[]): Promise<void> {
   console.log(`[global-setup] running: ${command} ${args.join(' ')}`);
